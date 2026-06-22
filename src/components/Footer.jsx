@@ -1,165 +1,99 @@
 import Link from "next/link";
+import { Zap } from "lucide-react";
 import {
   LogoFacebook,
   LogoLinkedin,
   LogoGithub,
 } from "@gravity-ui/icons";
 
-
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-black text-white">
+    <footer className="w-full border-t border-zinc-800 bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        {/* TOP SECTION */}
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-          {/* LEFT */}
+        
+        {/* TOP SECTION: Grid layout */}
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+          
+          {/* BRAND SECTION (Column 1) */}
           <div className="space-y-6">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500">
-                <span className="text-xl font-bold text-white">P</span>
+            <Link href="/" className="flex items-center gap-2 w-fit transition-opacity hover:opacity-90">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-yellow-400 shadow-lg shadow-teal-500/10">
+                <Zap className="h-6 w-6 text-black fill-black" />
               </div>
-
-              <div className="leading-none">
-                <h2 className="text-xl font-bold">Hiring</h2>
-                <h2 className="text-xl font-bold">Loop</h2>
-              </div>
+              <span className="text-xl font-bold tracking-tight">
+                Skill<span className="text-teal-600">Swap</span>
+              </span>
             </Link>
 
-            {/* Description */}
-            <p className="max-w-xs leading-8 text-gray-400">
-              The AI-native career platform. Built for people who take
-              their work seriously.
+            <p className="max-w-xs leading-8 text-muted-foreground">
+              The platform where talent meets opportunity. Built for the modern workforce.
             </p>
 
             {/* Social Icons */}
-            <div className="flex items-center gap-4 pt-6">
-              <Link
-                href="#"
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 transition hover:bg-violet-600"
-              >
-                <LogoFacebook className="h-5 w-5" />
-              </Link>
-
-              <Link
-                href="#"
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-600 transition hover:bg-violet-500"
-              >
-                <LogoGithub className="h-5 w-5" />
-              </Link>
-
-              <Link
-                href="#"
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 transition hover:bg-violet-600"
-              >
-                <LogoLinkedin className="h-5 w-5" />
-              </Link>
+            <div className="flex items-center gap-3">
+              {[LogoFacebook, LogoGithub, LogoLinkedin].map((Icon, idx) => (
+                <Link
+                  key={idx}
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 transition hover:bg-teal-600 text-muted-foreground hover:text-white"
+                >
+                  <Icon className="h-5 w-5" />
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* PRODUCT */}
-          <div>
-            <h3 className="mb-6 text-lg font-semibold text-violet-500">
-              Product
-            </h3>
-
-            <ul className="space-y-4 text-gray-400">
-              <li>
-                <Link href="/jobs" className="transition hover:text-white">
-                  Job discovery
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/worker-ai" className="transition hover:text-white">
-                  Worker AI
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/companies" className="transition hover:text-white">
-                  Companies
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/salary" className="transition hover:text-white">
-                  Salary data
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* NAVIGATION */}
-          <div>
-            <h3 className="mb-6 text-lg font-semibold text-violet-500">
-              Navigations
-            </h3>
-
-            <ul className="space-y-4 text-gray-400">
-              <li>
-                <Link
-                  href="/help-center"
-                  className="transition hover:text-white"
-                >
-                  Help center
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/career-library"
-                  className="transition hover:text-white"
-                >
-                  Career library
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/contact" className="transition hover:text-white">
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* RESOURCES */}
-          <div>
-            <h3 className="mb-6 text-lg font-semibold text-violet-500">
-              Resources
-            </h3>
-
-            <ul className="space-y-4 text-gray-400">
-              <li>
-                <Link
-                  href="/brand-guideline"
-                  className="transition hover:text-white"
-                >
-                  Brand Guideline
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/newsroom" className="transition hover:text-white">
-                  Newsroom
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* DYNAMIC LINKS (Columns 2, 3, 4) */}
+          {[
+            { 
+              title: "Product", 
+              links: [
+                { label: "Browse Tasks", href: "/jobs" }, 
+                { label: "Browse Freelancers", href: "/freelancers" }, 
+                { label: "Companies", href: "/companies" }, 
+                { label: "Salary Data", href: "/salary" }
+              ] 
+            },
+            { 
+              title: "Navigation", 
+              links: [
+                { label: "Dashboard", href: "/dashboard" }, 
+                { label: "Profile", href: "/profile" }, 
+                { label: "Help Center", href: "/help-center" }
+              ] 
+            },
+            { 
+              title: "Resources", 
+              links: [
+                { label: "Brand Guideline", href: "/brand-guideline" }, 
+                { label: "Newsroom", href: "/newsroom" }, 
+                { label: "Contact", href: "/contact" }
+              ] 
+            }
+          ].map((section) => (
+            <div key={section.title}>
+              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-teal-600">
+                {section.title}
+              </h3>
+              <ul className="space-y-4 text-muted-foreground">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="transition hover:text-foreground">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* BOTTOM */}
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-sm text-gray-500 md:flex-row">
-          <p>Copyright 2024 — Hire Loop</p>
-
-          <div className="flex items-center gap-6">
-            <Link href="/terms" className="transition hover:text-white">
-              Terms & Policy
-            </Link>
-
-            <Link href="/privacy" className="transition hover:text-white">
-              Privacy Guideline
-            </Link>
+        {/* BOTTOM SECTION */}
+        <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-zinc-800 pt-8 text-sm text-muted-foreground md:flex-row">
+          <p>© {new Date().getFullYear()} SkillSwap. All rights reserved.</p>
+          <div className="flex items-center gap-8">
+            <Link href="/terms" className="transition hover:text-foreground">Terms & Policy</Link>
+            <Link href="/privacy" className="transition hover:text-foreground">Privacy Guideline</Link>
           </div>
         </div>
       </div>
