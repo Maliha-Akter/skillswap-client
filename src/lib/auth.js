@@ -18,8 +18,23 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: 'string',
-        defaultValue: 'client',
-        input: true, // <--- THIS IS THE KEY
+        defaultValue: 'client', // Defaults social/Google login to 'client'
+        input: true,
+      },
+      skills: {
+        type: 'string',
+        defaultValue: '', // Left empty/blank for standard clients
+        input: true,
+      },
+      bio: {
+        type: 'string',
+        defaultValue: '', // Left empty/blank for standard clients
+        input: true,
+      },
+      hourlyRate: {
+        type: 'number',
+        defaultValue: 0, // 0 or empty for standard clients
+        input: true,
       },
       isBlocked: {
         type: 'boolean',

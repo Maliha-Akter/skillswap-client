@@ -56,6 +56,7 @@ const JobCard = ({ job }) => (
   </div>
 );
 
+
 const JobsPage = () => {
   return (
     <div className="p-8 bg-zinc-950 min-h-screen">
