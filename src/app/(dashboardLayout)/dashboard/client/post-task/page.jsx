@@ -38,13 +38,14 @@ const PostTask = () => {
                 client_email: userEmail,
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedData),
             });
 
             const responseData = await res.json();
+            console.log(responseData);
 
             if (!res.ok) {
                 throw new Error(responseData.message || "Failed to post task");
