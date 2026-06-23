@@ -7,9 +7,25 @@ const db = client.db(process.env.AUTH_DB_NAME);
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
-    client
+    client,
   }),
-   emailAndPassword: { 
-    enabled: true, 
-  }, 
+
+  emailAndPassword: {
+    enabled: true,
+  },
+
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        defaultValue: 'client',
+        input: true, // <--- THIS IS THE KEY
+      },
+      isBlocked: {
+        type: 'boolean',
+        defaultValue: false,
+        input: false, // Keep false so users cannot block/unblock themselves
+      },
+    },
+  }
 });
