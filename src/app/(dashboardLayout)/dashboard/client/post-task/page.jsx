@@ -5,11 +5,14 @@ import { Button, Input, TextArea, Card } from "@heroui/react";
 import { FaBriefcase, FaDollarSign, FaCalendarAlt, FaLayerGroup } from "react-icons/fa";
 import PageHeader from "@/components/PageHeader";
 import { toast } from "react-toastify";
-import { useSession } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 
 const PostTask = () => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
-    const { data: session } = useSession();
+
+    // Using authClient session hook to get the active logged-in client user account info
+    const { data: session } = authClient.useSession();
+    const userEmail = session?.user?.email;
 
     const categories = [
         { label: "Design", value: "Design" },
@@ -20,6 +23,11 @@ const PostTask = () => {
     ];
 
     const onSubmitTask = async (data) => {
+        if (!userEmail) {
+            toast.error("You must be logged in to publish a new job block.");
+            return;
+        }
+
         try {
             const formattedData = {
                 title: data.title,
@@ -27,32 +35,35 @@ const PostTask = () => {
                 description: data.description,
                 budget: parseFloat(data.budget),
                 deadline: data.deadline,
-                client_email: session?.user?.email,
+                client_email: userEmail,
             };
 
-            const res = await fetch("/api/tasks", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedData),
             });
 
-            if (!res.ok) throw new Error("Failed to post task");
+            const responseData = await res.json();
 
-            toast.success("Task published successfully!");
+            if (!res.ok) {
+                throw new Error(responseData.message || "Failed to post task");
+            }
+
+            toast.success("Task published and saved into database!");
             reset();
         } catch (error) {
             toast.error(error.message || "Failed to post the task.");
         }
     };
 
-    // Reusable input wrapper classes
     const inputClasses = {
         label: "text-zinc-300 text-sm font-medium mb-1.5 block",
         inputWrapper: "h-11 bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 focus-within:!border-amber-500/80 transition-all duration-200 rounded-xl px-4",
         input: "text-sm placeholder:text-zinc-600",
     };
 
-    // Safely extract properties from registration to prevent forwarding props to DOM elements
+    // Safely extracting properties from registration to prevent forwarding props to DOM elements
     const titleRegister = register("title", { required: "Task title is required" });
     const deadlineRegister = register("deadline", { required: "Deadline date is required" });
     const budgetRegister = register("budget", {
