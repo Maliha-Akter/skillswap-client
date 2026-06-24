@@ -1,15 +1,20 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { 
     FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, 
     FaArrowLeft, FaPaperPlane, FaClock, FaEnvelope, 
     FaFileAlt, FaTag, FaBriefcase, FaCircle, FaTimes 
 } from 'react-icons/fa';
+import { useSession } from '@/lib/auth-client';
 
 const TaskDetailsPage = ({ params }) => {
     const router = useRouter();
     const id = React.use(params).id;
+    
+    // 2. Destructure session data
+    const { data: session } = useSession();
 
     // Task and interface states
     const [task, setTask] = useState(null);
@@ -39,8 +44,8 @@ const TaskDetailsPage = ({ params }) => {
     useEffect(() => {
         if (!id) return;
         
-        // Simulated logged-in freelancer email
-        const activeUserEmail = "freelancer@techwave.dev"; 
+        // 3. Fallback safely to an empty string if the session hasn't loaded yet
+        const activeUserEmail = session?.user?.email || ''; 
         
         setProposalForm(prev => ({ 
             ...prev, 
@@ -72,7 +77,7 @@ const TaskDetailsPage = ({ params }) => {
         };
 
         fetchTaskDetails();
-    }, [id]);
+    }, [id, session]); // 4. Added session to the dependency array
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
@@ -107,7 +112,7 @@ const TaskDetailsPage = ({ params }) => {
                 estimatedDays: '',
                 coverNote: ''
             }));
-            setIsModalOpen(false); // Close modal on success
+            setIsModalOpen(false); 
             router.refresh();
 
         } catch (err) {
@@ -360,7 +365,7 @@ const TaskDetailsPage = ({ params }) => {
                                     <FaPaperPlane className="text-teal-400 text-xs" /> Send a Proposal
                                 </h2>
                                 <p className="text-zinc-500 text-xs mt-0.5">
-                                    Logged in as: <span className="text-zinc-400 font-mono">{proposalForm.freelancerEmail}</span>
+                                    Logged in as: <span className="text-zinc-400 font-mono">{proposalForm.freelancerEmail || "Loading..."}</span>
                                 </p>
                             </div>
                             <button 
