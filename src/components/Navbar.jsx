@@ -8,7 +8,7 @@ import { authClient } from "@/lib/auth-client";
 import { NavbarLogo } from "./NavbarLogo";
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const pathname = usePathname(); //current URL's pathname.
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -20,7 +20,7 @@ export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-  // Handle clicking outside to close menus
+  // Handling clicking outside to close menus
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -64,23 +64,23 @@ export default function Navbar() {
         <div className="z-20 flex items-center">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-foreground"
+            className="lg:hidden p-2 text-foreground"
           >
             {isMenuOpen ? "✕" : "☰"}
           </button>
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <NavbarLogo />
           </div>
         </div>
 
         {/* CENTER SECTION: Logo on Mobile, Links on Desktop */}
-        <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 z-10 flex items-center">
+        <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 z-10 flex items-center">
           {/* Logo visible only on mobile */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <NavbarLogo />
           </div>
           {/* Links visible only on desktop */}
-          <ul className="hidden md:flex items-center gap-1">
+          <ul className="hidden lg:flex items-center gap-1">
             {linksToShow.map((link) => (
               <li key={link.href}>
                 <Link
@@ -156,7 +156,7 @@ export default function Navbar() {
 
       {/* MOBILE MENU (Combined) */}
       {isMenuOpen && (
-        <div className="absolute w-full border-b border-zinc-800 bg-background p-6 md:hidden flex flex-col gap-4 z-40" ref={menuRef}>
+        <div className="absolute w-full border-b border-zinc-800 bg-background p-6 lg:hidden flex flex-col gap-4 z-40" ref={menuRef}>
           {linksToShow.map((link) => (
             <Link
               key={link.href}
