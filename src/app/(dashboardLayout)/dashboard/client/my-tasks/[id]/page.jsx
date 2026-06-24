@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, FaArrowLeft } from 'react-icons/fa';
+import { FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, FaArrowLeft, FaSpinner } from 'react-icons/fa';
 
 // 1. Receive params directly as a prop from Next.js
 const TaskDetailsPage = ({ params }) => {
@@ -13,6 +13,7 @@ const TaskDetailsPage = ({ params }) => {
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Edit states
     const [isEditing, setIsEditing] = useState(false);
@@ -30,8 +31,8 @@ const TaskDetailsPage = ({ params }) => {
             try {
                 setLoading(true);
                 
-                // Hits your direct backend endpoint safely
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`);
+                // Consistently hit your backend server port 
+                const response = await fetch(`http://localhost:8080/tasks/${id}`);
                 if (!response.ok) {
                     throw new Error("Could not find this task in the database.");
                 }
@@ -58,7 +59,13 @@ const TaskDetailsPage = ({ params }) => {
     // Handler to save text modifications (Only if status is "open")
     const handleUpdateTask = async (e) => {
         e.preventDefault();
+        if (task.status?.toLowerCase() !== 'open') {
+            alert("Action Blocked: You can only edit task details while the listing status is still 'Open'.");
+            return;
+        }
+
         try {
+            setIsSubmitting(true);
             const response = await fetch(`http://localhost:8080/api/tasks/${id}/edit`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -73,20 +80,26 @@ const TaskDetailsPage = ({ params }) => {
             alert("Task updated successfully in the database!");
         } catch (err) {
             alert(`Update Error: ${err.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    // Handler to completely remove a task document (Only if proposals === 0)
+    // Handler to completely remove a task document (Only possible if no proposal has been approved yet)
     const handleDeleteTask = async () => {
-        if (task.proposals && task.proposals > 0) {
-            alert("Action Blocked: You cannot delete a task that already has active proposals submitted.");
+        const currentStatus = task.status?.toLowerCase();
+        
+        // Block deletion if a proposal has already been approved (i.e. task is assigned, ongoing, or completed)
+        if (currentStatus !== 'open' && currentStatus !== 'pending') {
+            alert("Action Blocked: You cannot delete a task after a freelancer's proposal has already been accepted and approved.");
             return;
         }
 
-        const confirmDelete = window.confirm("Are you sure you want to permanently delete this task block?");
+        const confirmDelete = window.confirm("Are you sure you want to permanently delete this task listing? Unapproved proposals will be dropped.");
         if (!confirmDelete) return;
 
         try {
+            setIsSubmitting(true);
             const response = await fetch(`http://localhost:8080/tasks/${id}`, {
                 method: "DELETE"
             });
@@ -97,6 +110,8 @@ const TaskDetailsPage = ({ params }) => {
             router.push('/my-tasks'); 
         } catch (err) {
             alert(`Delete Error: ${err.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -105,7 +120,8 @@ const TaskDetailsPage = ({ params }) => {
     if (!task) return null;
 
     const isOpen = task.status?.toLowerCase() === 'open';
-    const hasProposals = task.proposals > 0;
+    // Approved criteria: Block deletion if it matches status that indicates an accepted agreement
+    const isApprovedTask = task.status?.toLowerCase() === 'assigned' || task.status?.toLowerCase() === 'in_progress';
 
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-6 md:p-10">
@@ -114,7 +130,8 @@ const TaskDetailsPage = ({ params }) => {
                 {/* Back button Navigation */}
                 <button 
                     onClick={() => router.back()} 
-                    className="flex items-center gap-2 text-zinc-400 hover:text-teal-400 text-sm w-fit transition-colors"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 text-zinc-400 hover:text-teal-400 text-sm w-fit transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <FaArrowLeft /> Back to Tasks
                 </button>
@@ -138,7 +155,8 @@ const TaskDetailsPage = ({ params }) => {
                             {isOpen && !isEditing && (
                                 <button 
                                     onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl border border-white/10 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="flex items-center gap-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl border border-white/10 transition-colors disabled:opacity-50"
                                 >
                                     <FaEdit className="text-teal-400" /> Edit Content
                                 </button>
@@ -146,14 +164,14 @@ const TaskDetailsPage = ({ params }) => {
 
                             <button 
                                 onClick={handleDeleteTask}
-                                disabled={hasProposals}
+                                disabled={isApprovedTask || isSubmitting}
                                 className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border transition-all ${
-                                    hasProposals 
+                                    isApprovedTask || isSubmitting
                                     ? 'bg-zinc-800/50 text-zinc-600 border-white/5 cursor-not-allowed' 
                                     : 'bg-red-500/10 hover:bg-red-500 hover:text-black text-red-400 border-red-500/20'
                                 }`}
                             >
-                                <FaTrashAlt /> Delete Task
+                                {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaTrashAlt />} Delete Task
                             </button>
                         </div>
                     </div>
@@ -169,6 +187,7 @@ const TaskDetailsPage = ({ params }) => {
                                     onChange={(e) => setEditData({...editData, title: e.target.value})}
                                     className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-teal-500/50"
                                     required
+                                    disabled={isSubmitting}
                                 />
                             </div>
 
@@ -180,6 +199,7 @@ const TaskDetailsPage = ({ params }) => {
                                     onChange={(e) => setEditData({...editData, description: e.target.value})}
                                     className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-teal-500/50"
                                     required
+                                    disabled={isSubmitting}
                                 />
                             </div>
 
@@ -192,6 +212,7 @@ const TaskDetailsPage = ({ params }) => {
                                         onChange={(e) => setEditData({...editData, category: e.target.value})}
                                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-teal-500/50"
                                         required
+                                        disabled={isSubmitting}
                                     />
                                 </div>
                                 <div>
@@ -202,6 +223,7 @@ const TaskDetailsPage = ({ params }) => {
                                         onChange={(e) => setEditData({...editData, budget: e.target.value})}
                                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-teal-500/50"
                                         required
+                                        disabled={isSubmitting}
                                     />
                                 </div>
                             </div>
@@ -210,15 +232,17 @@ const TaskDetailsPage = ({ params }) => {
                                 <button 
                                     type="button" 
                                     onClick={() => setIsEditing(false)}
-                                    className="text-xs bg-transparent hover:bg-white/5 text-zinc-400 px-4 py-2 rounded-xl transition-colors"
+                                    disabled={isSubmitting}
+                                    className="text-xs bg-transparent hover:bg-white/5 text-zinc-400 px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="text-xs bg-teal-500 text-black font-semibold px-4 py-2 rounded-xl flex items-center gap-1 hover:bg-teal-400 transition-colors"
+                                    disabled={isSubmitting}
+                                    className="text-xs bg-teal-500 text-black font-semibold px-4 py-2 rounded-xl flex items-center gap-1 hover:bg-teal-400 transition-colors disabled:bg-teal-800 disabled:cursor-not-allowed"
                                 >
-                                    <FaCheck /> Save Changes
+                                    {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaCheck />} Save Changes
                                 </button>
                             </div>
                         </form>

@@ -182,7 +182,7 @@ const TaskDetailsPage = ({ params }) => {
                         <FaArrowLeft className="transform group-hover:-translate-x-0.5 transition-transform" /> Back to Tasks
                     </button>
 
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                         {isOpen && !isEditing && (
                             <button
                                 onClick={() => setIsEditing(true)}
@@ -201,7 +201,7 @@ const TaskDetailsPage = ({ params }) => {
                         >
                             <FaTrashAlt /> Delete Task
                         </button>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Edit Form Interface */}
