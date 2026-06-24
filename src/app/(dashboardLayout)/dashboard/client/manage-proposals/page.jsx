@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    FaUser, FaDollarSign, FaCalendarAlt, FaEnvelope, 
-    FaCheck, FaTimes, FaBriefcase, FaArrowLeft 
+import {
+    FaUser, FaDollarSign, FaCalendarAlt, FaEnvelope,
+    FaCheck, FaTimes, FaBriefcase, FaArrowLeft
 } from 'react-icons/fa';
 import { useSession } from '@/lib/auth-client';
 
@@ -33,7 +33,7 @@ const ManageProposalsPage = () => {
                 // Fetch proposals for jobs posted by this client's email
                 const clientEmail = data.user.email;
                 const response = await fetch(`http://localhost:8080/client-proposals?clientEmail=${encodeURIComponent(clientEmail)}`);
-                
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch incoming applications.");
                 }
@@ -50,10 +50,64 @@ const ManageProposalsPage = () => {
         fetchIncomingProposals();
     }, [data, status]);
 
-    // Dummy button handlers as requested
-    const handleAcceptClick = (proposalId, taskId) => {
-        console.log(`Accept clicked for proposal: ${proposalId} on task: ${taskId}`);
-        // Your payment redirect link will plug in right here later!
+    // Updated accept click handler to forward complete structural parameters
+    const handleAcceptClick = async (proposal) => {
+        const {
+            _id: proposalId,
+            task_id: taskId,
+            freelancer_email,
+            proposed_budget,
+            estimated_days,
+            cover_note,
+            status: proposalStatus,
+            submitted_at,
+            taskTitle
+        } = proposal;
+
+        console.log(`Initializing PaymentIntent for proposal: ${proposalId}`);
+
+        try {
+            // 1. Send transaction data to your PaymentIntent API
+            const response = await fetch('/api/checkout_sessions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    taskId: taskId,
+                    proposalId: proposalId,
+                    amount: proposed_budget,
+                    taskTitle: taskTitle || "Target Job Listing"
+                }),
+            });
+
+            const responseData = await response.json();
+
+            // 2. Read the clientSecret and route forward with full parameters mapping
+            if (responseData.clientSecret) {
+                const queryParams = new URLSearchParams({
+                    client_secret: responseData.clientSecret,
+                    proposal_id: proposalId || '',
+                    task_id: taskId || '',
+                    amount: proposed_budget ? String(proposed_budget) : '',
+                    task_title: taskTitle || "Target Job Listing",
+                    freelancer_email: freelancer_email || '',
+                    estimated_days: estimated_days ? String(estimated_days) : '',
+                    cover_note: cover_note || '',
+                    status: proposalStatus || '',
+                    submitted_at: submitted_at ? String(submitted_at) : ''
+                });
+
+                // Route internally to your custom discrete element payment screen layout
+                window.location.href = `/payment/checkout?${queryParams.toString()}`;
+            } else {
+                console.error('Failed to retrieve Stripe clientSecret:', responseData.error);
+                alert('Something went wrong. Could not initialize payment checkout.');
+            }
+        } catch (error) {
+            console.error('Error handling checkout redirect:', error);
+            alert('Network error. Please try again.');
+        }
     };
 
     const handleRejectClick = (proposalId) => {
@@ -67,7 +121,7 @@ const ManageProposalsPage = () => {
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-4 md:p-12 selection:bg-teal-500/30 selection:text-teal-200">
             <div className="max-w-6xl mx-auto flex flex-col gap-8">
-                
+
                 {/* Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
                     <div className="flex flex-col gap-2">
@@ -99,8 +153,8 @@ const ManageProposalsPage = () => {
                 ) : (
                     <div className="grid grid-cols-1 gap-6">
                         {proposals.map((proposal) => (
-                            <div 
-                                key={proposal._id} 
+                            <div
+                                key={proposal._id}
                                 className="bg-zinc-900 border border-white/5 rounded-2xl p-6 flex flex-col lg:flex-row justify-between gap-6 shadow-xl relative overflow-hidden group hover:border-white/10 transition-colors"
                             >
                                 {/* Left Section: Proposal Content Data */}
@@ -108,12 +162,10 @@ const ManageProposalsPage = () => {
                                     {/* Task & Freelancer Identity Meta */}
                                     <div className="flex flex-col gap-1">
                                         <span className="text-2xl font-semibold text-teal-400 flex items-center gap-1.5 font-mono">
-                                            <FaBriefcase className="text-xs text-teal-500" /> 
+                                            <FaBriefcase className="text-xs text-teal-500" />
                                             {proposal.taskTitle || "Target Job Listing"}
                                         </span>
                                         <h3 className="text-base font-bold text-white flex items-center gap-2 mt-1">
-                                            {/* <FaUser className="text-zinc-500 text-xs" />
-                                            {proposal.freelancer_name || "Anonymous Freelancer"} */}
                                             <span className="text-xl text-zinc-500 font-mono font-normal">({proposal.freelancer_email})</span>
                                         </h3>
                                     </div>
@@ -149,10 +201,10 @@ const ManageProposalsPage = () => {
 
                                 {/* Right Section: Functional Action Control Interface */}
                                 <div className="flex sm:flex-row lg:flex-col justify-end lg:justify-center items-center gap-3 border-t lg:border-t-0 lg:border-l border-white/5 pt-4 lg:pt-0 lg:pl-6 min-w-[160px]">
-                                    
-                                    {/* Accept Offer Action Button */}
+
+                                    {/* Accept Offer Action Button - Sends the entire proposal payload */}
                                     <button
-                                        onClick={() => handleAcceptClick(proposal._id, proposal.task_id)}
+                                        onClick={() => handleAcceptClick(proposal)}
                                         className="w-full sm:w-auto lg:w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-zinc-950 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-teal-500/10"
                                     >
                                         <FaCheck className="text-[10px]" /> Accept Offer
@@ -165,7 +217,7 @@ const ManageProposalsPage = () => {
                                     >
                                         <FaTimes className="text-[10px]" /> Reject Offer
                                     </button>
-                                    
+
                                 </div>
                             </div>
                         ))}
