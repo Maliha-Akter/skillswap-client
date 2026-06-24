@@ -2,37 +2,35 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { 
-    FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, 
-    FaArrowLeft, FaPaperPlane, FaClock, FaEnvelope, 
-    FaFileAlt, FaTag, FaBriefcase, FaCircle, FaTimes 
+import {
+    FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck,
+    FaArrowLeft, FaPaperPlane, FaClock, FaEnvelope,
+    FaFileAlt, FaTag, FaBriefcase, FaCircle, FaTimes
 } from 'react-icons/fa';
 import { useSession } from '@/lib/auth-client';
 
 const TaskDetailsPage = ({ params }) => {
     const router = useRouter();
     const id = React.use(params).id;
-    
-    // 2. Destructure session data
-    const { data: session } = useSession();
 
-    // Task and interface states
+    const { data: session } = useSession();
+    const userRole = session?.user?.role;
+    const isClient = userRole === 'client';
+
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Form inputs for proposal collection
     const [proposalForm, setProposalForm] = useState({
         taskId: id || '',
-        freelancerEmail: '', 
+        freelancerEmail: '',
         proposedBudget: '',
         estimatedDays: '',
         coverNote: ''
     });
     const [submittingProposal, setSubmittingProposal] = useState(false);
 
-    // Edit states for original task data
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
         title: '',
@@ -43,12 +41,11 @@ const TaskDetailsPage = ({ params }) => {
 
     useEffect(() => {
         if (!id) return;
-        
-        // 3. Fallback safely to an empty string if the session hasn't loaded yet
-        const activeUserEmail = session?.user?.email || ''; 
-        
-        setProposalForm(prev => ({ 
-            ...prev, 
+
+        const activeUserEmail = session?.user?.email || '';
+
+        setProposalForm(prev => ({
+            ...prev,
             taskId: id,
             freelancerEmail: activeUserEmail
         }));
@@ -60,7 +57,7 @@ const TaskDetailsPage = ({ params }) => {
                 if (!response.ok) {
                     throw new Error("Could not find this task.");
                 }
-                
+
                 const matchedTask = await response.json();
                 setTask(matchedTask);
                 setEditData({
@@ -77,13 +74,15 @@ const TaskDetailsPage = ({ params }) => {
         };
 
         fetchTaskDetails();
-    }, [id, session]); // 4. Added session to the dependency array
+    }, [id, session]);
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
+        if (isClient) return;
+
         try {
             setSubmittingProposal(true);
-            
+
             const proposalPayload = {
                 taskId: proposalForm.taskId,
                 freelancerEmail: proposalForm.freelancerEmail,
@@ -105,14 +104,14 @@ const TaskDetailsPage = ({ params }) => {
             }
 
             alert("Proposal submitted successfully!");
-            
+
             setProposalForm(prev => ({
                 ...prev,
                 proposedBudget: '',
                 estimatedDays: '',
                 coverNote: ''
             }));
-            setIsModalOpen(false); 
+            setIsModalOpen(false);
             router.refresh();
 
         } catch (err) {
@@ -157,7 +156,7 @@ const TaskDetailsPage = ({ params }) => {
 
             if (!response.ok) throw new Error("Server error while deleting task.");
 
-            router.push('/my-tasks'); 
+            router.push('/my-tasks');
         } catch (err) {
             alert(`Delete Error: ${err.message}`);
         }
@@ -173,11 +172,11 @@ const TaskDetailsPage = ({ params }) => {
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-4 md:p-12 selection:bg-teal-500/30 selection:text-teal-200 relative">
             <div className="max-w-5xl mx-auto flex flex-col gap-8">
-                
+
                 {/* Top Navigation */}
                 <div className="flex items-center justify-between">
-                    <button 
-                        onClick={() => router.back()} 
+                    <button
+                        onClick={() => router.back()}
                         className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 text-xs font-semibold uppercase tracking-wider transition-colors group"
                     >
                         <FaArrowLeft className="transform group-hover:-translate-x-0.5 transition-transform" /> Back to Tasks
@@ -185,21 +184,20 @@ const TaskDetailsPage = ({ params }) => {
 
                     <div className="flex items-center gap-2">
                         {isOpen && !isEditing && (
-                            <button 
+                            <button
                                 onClick={() => setIsEditing(true)}
                                 className="flex items-center gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-3.5 py-2 rounded-xl border border-white/5 transition-colors"
                             >
                                 <FaEdit className="text-teal-400" /> Edit Task
                             </button>
                         )}
-                        <button 
+                        <button
                             onClick={handleDeleteTask}
                             disabled={hasProposals}
-                            className={`flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-xl border transition-all ${
-                                hasProposals 
-                                ? 'bg-zinc-900/40 text-zinc-600 border-white/5 cursor-not-allowed' 
-                                : 'bg-red-950/20 hover:bg-red-900 hover:text-white text-red-400 border-red-900/30'
-                            }`}
+                            className={`flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-xl border transition-all ${hasProposals
+                                    ? 'bg-zinc-900/40 text-zinc-600 border-white/5 cursor-not-allowed'
+                                    : 'bg-red-950/20 hover:bg-red-900 hover:text-white text-red-400 border-red-900/30'
+                                }`}
                         >
                             <FaTrashAlt /> Delete Task
                         </button>
@@ -212,10 +210,10 @@ const TaskDetailsPage = ({ params }) => {
                         <form onSubmit={handleUpdateTask} className="flex flex-col gap-5">
                             <div>
                                 <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Task Title</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={editData.title}
-                                    onChange={(e) => setEditData({...editData, title: e.target.value})}
+                                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
                                     className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                     required
                                 />
@@ -223,10 +221,10 @@ const TaskDetailsPage = ({ params }) => {
 
                             <div>
                                 <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Task Description</label>
-                                <textarea 
+                                <textarea
                                     rows={6}
                                     value={editData.description}
-                                    onChange={(e) => setEditData({...editData, description: e.target.value})}
+                                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                                     className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                     required
                                 />
@@ -235,20 +233,20 @@ const TaskDetailsPage = ({ params }) => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Category</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={editData.category}
-                                        onChange={(e) => setEditData({...editData, category: e.target.value})}
+                                        onChange={(e) => setEditData({ ...editData, category: e.target.value })}
                                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Budget ($)</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={editData.budget}
-                                        onChange={(e) => setEditData({...editData, budget: e.target.value})}
+                                        onChange={(e) => setEditData({ ...editData, budget: e.target.value })}
                                         className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                         required
                                     />
@@ -256,15 +254,15 @@ const TaskDetailsPage = ({ params }) => {
                             </div>
 
                             <div className="flex justify-end gap-3 mt-2 border-t border-white/5 pt-4">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setIsEditing(false)}
                                     className="text-xs font-medium text-zinc-400 hover:text-white px-4 py-2 transition-colors"
                                 >
                                     Cancel
                                 </button>
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     className="text-xs bg-teal-500 text-black font-semibold px-5 py-2.5 rounded-xl flex items-center gap-1.5 hover:bg-teal-400 transition-colors"
                                 >
                                     <FaCheck /> Save Changes
@@ -275,25 +273,31 @@ const TaskDetailsPage = ({ params }) => {
                 ) : (
                     /* Main Dashboard Split Layout */
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                        
+
                         {/* Left Side: Task Main Details */}
                         <div className="lg:col-span-2 flex flex-col gap-6">
                             <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 md:p-8 flex flex-col gap-4 shadow-sm relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1 h-full bg-teal-500/40" />
-                                
+
                                 <div className="flex items-center gap-3">
                                     <span className="flex items-center gap-1.5 px-3 py-1 bg-teal-400/10 border border-teal-400/20 text-teal-400 rounded-md text-[11px] font-bold uppercase tracking-wider">
                                         <FaCircle className="text-[6px] animate-pulse" /> {task.status || "Open"}
                                     </span>
                                     <span className="text-zinc-500 text-xs font-medium">
-                                        Posted: {task.createdAt ? new Date(task.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+                                        {/* // Replace your line with this to check both variations: */}
+                                        Posted: 
+                                        {/* {(task.createdAt || task.created_at)
+                                            ? new Date(task.createdAt || task.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+                                            : 'N/A'
+                                        } */}
+                                        {task.createdAt ? new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                     </span>
                                 </div>
 
                                 <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
                                     {task.title}
                                 </h1>
-                                
+
                                 <div className="h-px bg-white/5 my-2" />
 
                                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
@@ -309,7 +313,7 @@ const TaskDetailsPage = ({ params }) => {
                         <div className="flex flex-col gap-4">
                             <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col gap-5">
                                 <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/5 pb-3">Task Overview</h2>
-                                
+
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-zinc-500 font-medium flex items-center gap-2"><FaTag /> Category</span>
@@ -335,9 +339,14 @@ const TaskDetailsPage = ({ params }) => {
                                 </div>
 
                                 {isOpen ? (
-                                    <button 
-                                        onClick={() => setIsModalOpen(true)}
-                                        className="w-full text-center py-3 bg-teal-500 text-black font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-teal-400 transition-colors shadow-lg shadow-teal-500/10 flex items-center justify-center gap-2"
+                                    <button
+                                        onClick={() => !isClient && setIsModalOpen(true)}
+                                        disabled={isClient}
+                                        title={isClient ? "To apply for this job you have to login as a freelancer" : ""}
+                                        className={`w-full text-center py-3 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isClient
+                                                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                                                : 'bg-teal-500 text-black hover:bg-teal-400 shadow-lg shadow-teal-500/10'
+                                            }`}
                                     >
                                         <FaPaperPlane className="text-[10px]" /> Submit a Proposal
                                     </button>
@@ -357,7 +366,7 @@ const TaskDetailsPage = ({ params }) => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all animate-fadeIn">
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-                        
+
                         {/* Modal Header */}
                         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-zinc-900 sticky top-0 z-10">
                             <div>
@@ -368,7 +377,7 @@ const TaskDetailsPage = ({ params }) => {
                                     Logged in as: <span className="text-zinc-400 font-mono">{proposalForm.freelancerEmail || "Loading..."}</span>
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="text-zinc-500 hover:text-white p-2 rounded-lg bg-zinc-950/40 border border-white/5 transition-colors"
                             >
@@ -376,16 +385,16 @@ const TaskDetailsPage = ({ params }) => {
                             </button>
                         </div>
 
-                        {/* Modal Body Container with custom scroll styling */}
+                        {/* Modal Body Container */}
                         <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 custom-scrollbar">
                             <form onSubmit={handleSubmitProposal} className="flex flex-col gap-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Task ID Input */}
                                     <div>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Task ID</label>
-                                        <input 
-                                            type="text" 
-                                            value={proposalForm.taskId} 
+                                        <input
+                                            type="text"
+                                            value={proposalForm.taskId}
                                             readOnly
                                             className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-sm text-zinc-500 outline-none cursor-not-allowed"
                                         />
@@ -396,10 +405,10 @@ const TaskDetailsPage = ({ params }) => {
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Freelancer Email</label>
                                         <div className="relative flex items-center">
                                             <FaEnvelope className="absolute left-4 text-zinc-500 text-xs" />
-                                            <input 
-                                                type="email" 
+                                            <input
+                                                type="email"
                                                 value={proposalForm.freelancerEmail}
-                                                onChange={(e) => setProposalForm({...proposalForm, freelancerEmail: e.target.value})}
+                                                onChange={(e) => setProposalForm({ ...proposalForm, freelancerEmail: e.target.value })}
                                                 className="w-full bg-zinc-950 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                                 required
                                             />
@@ -413,12 +422,12 @@ const TaskDetailsPage = ({ params }) => {
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Proposed Budget (USD)</label>
                                         <div className="relative flex items-center">
                                             <FaDollarSign className="absolute left-4 text-zinc-500 text-xs" />
-                                            <input 
-                                                type="number" 
+                                            <input
+                                                type="number"
                                                 placeholder="e.g. 500"
                                                 min="1"
                                                 value={proposalForm.proposedBudget}
-                                                onChange={(e) => setProposalForm({...proposalForm, proposedBudget: e.target.value})}
+                                                onChange={(e) => setProposalForm({ ...proposalForm, proposedBudget: e.target.value })}
                                                 className="w-full bg-zinc-950 border border-white/5 rounded-xl pl-9 pr-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                                 required
                                             />
@@ -430,12 +439,12 @@ const TaskDetailsPage = ({ params }) => {
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Estimated Days</label>
                                         <div className="relative flex items-center">
                                             <FaClock className="absolute left-4 text-zinc-500 text-xs" />
-                                            <input 
-                                                type="number" 
+                                            <input
+                                                type="number"
                                                 placeholder="e.g. 7"
                                                 min="1"
                                                 value={proposalForm.estimatedDays}
-                                                onChange={(e) => setProposalForm({...proposalForm, estimatedDays: e.target.value})}
+                                                onChange={(e) => setProposalForm({ ...proposalForm, estimatedDays: e.target.value })}
                                                 className="w-full bg-zinc-950 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors"
                                                 required
                                             />
@@ -448,28 +457,28 @@ const TaskDetailsPage = ({ params }) => {
                                     <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cover Note Message</label>
                                     <div className="relative flex">
                                         <FaFileAlt className="absolute left-4 top-4 text-zinc-500 text-xs" />
-                                        <textarea 
+                                        <textarea
                                             rows={5}
                                             placeholder="Describe your setup, workflows, and timelines clearly..."
                                             value={proposalForm.coverNote}
-                                            onChange={(e) => setProposalForm({...proposalForm, coverNote: e.target.value})}
+                                            onChange={(e) => setProposalForm({ ...proposalForm, coverNote: e.target.value })}
                                             className="w-full bg-zinc-950 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-sm text-white outline-none focus:border-teal-500/50 transition-colors resize-none leading-relaxed"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                {/* Footer Action Buttons inside form */}
+                                {/* Footer Action Buttons */}
                                 <div className="flex justify-end gap-3 pt-4 border-t border-white/5 bg-zinc-900 sticky bottom-0 z-10">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => setIsModalOpen(false)}
                                         className="text-xs font-semibold text-zinc-400 hover:text-white px-4 py-2 transition-colors"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         className="text-xs bg-teal-500 text-black font-bold px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-teal-400 transition-colors"
                                         disabled={submittingProposal}
                                     >

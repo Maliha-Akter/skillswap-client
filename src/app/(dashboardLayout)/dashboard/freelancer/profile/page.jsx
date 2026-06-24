@@ -161,6 +161,8 @@ const EditProfilePage = () => {
                                     <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">Identity Details</h2>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* <label>Name</label> */}
+                                    
                                     <Input
                                         label="Display Profile Name"
                                         placeholder="e.g., Alex Rivera"

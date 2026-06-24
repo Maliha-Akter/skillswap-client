@@ -14,6 +14,8 @@ import { FcGoogle } from "react-icons/fc";
 export default function SignupPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    
+    // Captures where the user originally came from, defaults to home page
     const callbackUrl = searchParams.get("callbackUrl") || "/";
 
     // --- Form States ---
@@ -93,12 +95,12 @@ export default function SignupPage() {
             } else {
                 toast.success(`Account created as ${role}!`);
 
-                // Force logout and redirect to login (respecting callbackUrl)
+                // Force logout and redirect to login (passing down callbackUrl safely)
                 await authClient.signOut();
-                const redirectTo = `/auth/signin${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`;
+                const redirectTo = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
                 router.push(redirectTo);
 
-                // Reset form (optional)
+                // Reset form
                 setRole(null);
                 setName("");
                 setEmail("");
@@ -121,9 +123,7 @@ export default function SignupPage() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Display the file name while uploading
         setFileName(file.name);
-
         setIsLoading(true);
         const formData = new FormData();
         formData.append("image", file);
@@ -133,12 +133,11 @@ export default function SignupPage() {
             const data = await response.json();
 
             if (data.success) {
-                setImage(data.data.url);     // store the URL
+                setImage(data.data.url);
                 toast.success("File uploaded!");
-                // fileName remains the file name, so input shows the file name
             } else {
                 toast.error("Upload failed");
-                setFileName(""); // revert to empty so input shows URL (if any)
+                setFileName("");
             }
         } catch (err) {
             toast.error("Failed to upload the image.");
@@ -152,7 +151,7 @@ export default function SignupPage() {
         try {
             await authClient.signIn.social({
                 provider: "google",
-                callbackURL: callbackUrl,
+                callbackURL: window.location.origin + callbackUrl, // Absolute URL for the OAuth handler
             });
         } catch (err) {
             toast.error("Failed to authenticate with Google.");
@@ -259,10 +258,10 @@ export default function SignupPage() {
                                     <FiImage className="text-zinc-500" size={16} />
                                     <Input
                                         placeholder="https://example.com/avatar.png"
-                                        value={fileName || image} // show filename if uploaded, else URL
+                                        value={fileName || image}
                                         onChange={(e) => {
-                                            setImage(e.target.value); // update URL
-                                            setFileName("");          // clear filename so URL is shown
+                                            setImage(e.target.value);
+                                            setFileName("");
                                         }}
                                         className="w-full bg-transparent py-2 text-sm text-white outline-none border-none"
                                     />
@@ -387,7 +386,7 @@ export default function SignupPage() {
                             </Button>
                             <p className="text-center text-xs text-zinc-500">
                                 Already have an account?{" "}
-                                <Link href="/auth/signin" className="text-teal-400 hover:underline">
+                                <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-teal-400 hover:underline">
                                     Log in
                                 </Link>
                             </p>

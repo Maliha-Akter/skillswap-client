@@ -13,6 +13,8 @@ import { FcGoogle } from "react-icons/fc";
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    
+    // Dynamically captures where the user came from, defaults to home page
     const callbackUrl = searchParams.get("callbackUrl") || "/";
 
     const [email, setEmail] = useState("");
@@ -29,14 +31,14 @@ export default function LoginPage() {
             const { error } = await authClient.signIn.email({
                 email,
                 password,
-                callbackURL: callbackUrl,
+                callbackURL: callbackUrl, // Better-Auth redirects automatically if set up, or handles internally
             });
 
             if (error) {
                 toast.error(error.message || "Login failed.");
             } else {
                 toast.success("Welcome back!");
-                router.push(callbackUrl);
+                router.push(callbackUrl); // Fallback manual redirection
                 router.refresh();
             }
         } catch (err) {
@@ -50,7 +52,7 @@ export default function LoginPage() {
         try {
             await authClient.signIn.social({
                 provider: "google",
-                callbackURL: callbackUrl,
+                callbackURL: window.location.origin + callbackUrl, // Full absolute URL required by social providers
             });
         } catch (err) {
             toast.error("Failed to authenticate with Google.");
@@ -109,7 +111,7 @@ export default function LoginPage() {
                                 <FcGoogle size={18} className="mr-2" /> Continue with Google
                             </Button>
                             <p className="text-center text-xs text-zinc-500 mt-2">
-                                Don't have an account? <Link href="/auth/signup" className="text-teal-400 hover:underline">Sign up</Link>
+                                Don't have an account? <Link href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-teal-400 hover:underline">Sign up</Link>
                             </p>
                         </div>
                     </Card>

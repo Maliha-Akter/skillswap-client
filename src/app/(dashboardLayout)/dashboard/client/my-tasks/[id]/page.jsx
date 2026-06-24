@@ -31,7 +31,7 @@ const TaskDetailsPage = ({ params }) => {
                 setLoading(true);
                 
                 // Hits your direct backend endpoint safely
-                const response = await fetch(await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`));
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`);
                 if (!response.ok) {
                     throw new Error("Could not find this task in the database.");
                 }
