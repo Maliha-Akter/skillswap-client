@@ -1,69 +1,82 @@
+"use client";
 import React from 'react';
 
 const FilterSection = ({ title, children }) => (
-  <div className="mb-6">
+  <div className="mb-6 border-b border-white/5 pb-5 last:border-none last:pb-0">
     <h3 className="text-white text-sm font-bold mb-3">{title}</h3>
-    <div className="space-y-2">{children}</div>
+    <div className="space-y-2.5">{children}</div>
   </div>
 );
 
-const Checkbox = ({ label }) => (
-  <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400">
-    <input type="checkbox" className="accent-teal-500 rounded" />
+const Checkbox = ({ label, name }) => (
+  <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
+    <input 
+      type="checkbox" 
+      name={name}
+      className="accent-teal-500 rounded border-white/10 bg-white/5 w-3.5 h-3.5" 
+    />
     {label}
   </label>
 );
 
 const JobFilterSidebar = () => {
   return (
-    <aside className="w-64 p-6 bg-zinc-950/80 backdrop-blur-xl border-r border-white/5 h-full overflow-y-auto">
+    <aside className="w-64 p-6 bg-zinc-950/80 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0 overflow-y-auto hidden md:block">
+      
+      {/* Sidebar Header Row */}
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-bold text-white">Filter</h2>
-        <button className="text-red-400 text-xs hover:underline">Reset</button>
+        <h2 className="text-xl font-bold text-white tracking-tight">Filters</h2>
+        <button className="text-red-400 text-xs hover:underline bg-transparent border-none cursor-pointer">
+          Reset All
+        </button>
       </div>
 
-      <FilterSection title="Job Location">
-        <input 
-          type="text" 
-          placeholder="Jakarta, Indonesia" 
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none" 
-        />
-      </FilterSection>
-
-      <FilterSection title="Job Position">
-        <Checkbox label="On Site" />
-        <Checkbox label="Remote" />
-        <Checkbox label="Hybrid" />
-      </FilterSection>
-
-      <FilterSection title="Job Type">
-        <Checkbox label="Fulltime" />
-        <Checkbox label="Partime" />
-        <Checkbox label="Freelance" />
-        <Checkbox label="Contract" />
-      </FilterSection>
-
-      <FilterSection title="Salary Range">
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <Checkbox label="$1k - $2k" />
-          <Checkbox label="$3k - $4k" />
-          <Checkbox label="$5k - $6k" />
-          <label className="flex items-center gap-2 text-teal-400 text-xs font-bold">
-            <input type="radio" name="salary" className="accent-teal-500" defaultChecked />
-            Custom
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <input type="text" placeholder="$7000" className="w-1/2 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs text-white" />
-          <input type="text" placeholder="$10000" className="w-1/2 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs text-white" />
-        </div>
-      </FilterSection>
-
-      <FilterSection title="Job Function">
-        {['Product Designer', 'UI/UX Designer', 'Web Designer', 'Digital Designer', 'Graphic Designer', 'Interior Designer'].map((item) => (
-          <Checkbox key={item} label={item} />
+      {/* Filter 1: Task Categories */}
+      <FilterSection title="Category">
+        {['Development', 'Marketing', 'Writing', 'Design', 'Other'].map((item) => (
+          <Checkbox key={item} label={item} name="category" />
         ))}
       </FilterSection>
+
+      {/* Filter 2: Live Status Tracks */}
+      <FilterSection title="Status">
+        {['Open', 'In Progress', 'Completed'].map((status) => (
+          <label key={status} className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
+            <input 
+              type="radio" 
+              name="status-filter" 
+              className="accent-teal-500 w-3.5 h-3.5" 
+            />
+            {status}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Filter 3: Budget Range Tiers */}
+      <FilterSection title="Budget Range">
+        <Checkbox label="$0 - $100" name="budget-tier" />
+        <Checkbox label="$100 - $500" name="budget-tier" />
+        <Checkbox label="$500 - $1k" name="budget-tier" />
+        
+        {/* Custom Bounds Block */}
+        <div className="pt-2 space-y-2">
+          <span className="text-zinc-500 text-[11px] block font-medium">Custom Range:</span>
+          <div className="flex gap-2 items-center">
+            <input 
+              type="text" 
+              placeholder="Min" 
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs text-white outline-none focus:border-teal-500/50 transition-colors placeholder:text-zinc-600" 
+            />
+            <span className="text-zinc-600 text-xs">-</span>
+            <input 
+              type="text" 
+              placeholder="Max" 
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-xs text-white outline-none focus:border-teal-500/50 transition-colors placeholder:text-zinc-600" 
+            />
+          </div>
+        </div>
+      </FilterSection>
+
     </aside>
   );
 };

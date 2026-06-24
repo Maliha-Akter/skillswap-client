@@ -32,7 +32,7 @@ const DashboardSideBar = () => {
 
   const freelancerMenu = [
     { key: "overview", label: "Dashboard", icon: FaChartLine, href: "/dashboard/freelancer" },
-    { key: "find-work", label: "Find Work", icon: FaBriefcase, href: "/dashboard/freelancer/find-work" },
+    { key: "find-work", label: "Browse Task", icon: FaBriefcase, href: "/jobs" },
     { key: "my-proposals", label: "My Proposals", icon: FaClipboardList, href: "/dashboard/freelancer/proposals" },
     { key: "active-projects", label: "Active Projects", icon: FaTasks, href: "/dashboard/freelancer/active-projects" },
     { key: "earnings", label: "My Earnings", icon: FaMoneyBillWave, href: "/dashboard/freelancer/earnings" },
