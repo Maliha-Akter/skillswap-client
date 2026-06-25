@@ -63,38 +63,32 @@ import { stripe } from '@/lib/stripe';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { taskId, proposalId, amount, taskTitle } = body;
+    const { taskId, proposalId, amount, taskTitle, clientEmail, freelancerEmail } = body;
 
-    // Validation check to make sure parameters exist
+    // Validation check to make sure core tracking fields exist
     if (!taskId || !proposalId || !amount) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    // Convert raw numeric bid amount into currency cents (e.g., $97 -> 9700)
     const unitAmount = Math.round(parseFloat(amount) * 100);
 
-    // Create a PaymentIntent instead of a Checkout Session
     const paymentIntent = await stripe.paymentIntents.create({
       amount: unitAmount,
       currency: 'usd',
       metadata: {
         taskId,
         proposalId,
-        taskTitle: taskTitle || "Payment of Freelancer"
+        taskTitle: taskTitle || "Payment of Freelancer",
+        clientEmail: clientEmail || "",
+        freelancerEmail: freelancerEmail || ""
       },
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      automatic_payment_methods: { enabled: true },
     });
 
-    // Return the clientSecret so your frontend custom form can process the payment locally
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
 
   } catch (err) {
     console.error("Stripe PaymentIntent Error:", err);
-    return NextResponse.json(
-      { error: err.message },
-      { status: err.statusCode || 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: err.statusCode || 500 });
   }
 }

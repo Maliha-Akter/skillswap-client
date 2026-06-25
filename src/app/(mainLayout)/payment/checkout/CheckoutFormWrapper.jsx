@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// ✅ FIXED: Added useSearchParams hook import
+import { useRouter, useSearchParams } from 'next/navigation'; 
 import { loadStripe } from '@stripe/stripe-js';
-import { 
-  Elements, 
-  useStripe, 
-  useElements, 
-  CardNumberElement, 
-  CardExpiryElement, 
-  CardCvcElement 
+import {
+  Elements,
+  useStripe,
+  useElements,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement
 } from '@stripe/react-stripe-js';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
@@ -26,14 +27,23 @@ const inputStyleOptions = {
   },
 };
 
-function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freelancerEmail }) {
+// We receive props here. If the parent doesn't pass clientEmail, we fallback to reading searchParams below.
+function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freelancerEmail, clientEmail: propClientEmail }) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
   
+  // ✅ FIXED: Safely invoke the Next.js hook
+  const searchParams = useSearchParams();
+  
+  // ✅ FIXED: Use the URL parameter if the prop didn't supply it
+  const finalClientEmail = propClientEmail || searchParams.get('client_email') || '';
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardName, setCardName] = useState('');
-  const [email, setEmail] = useState(freelancerEmail || '');
+
+  // Use the validated fallback state value for the billing form details
+  const [email, setEmail] = useState(finalClientEmail);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handlePaymentSubmit = async (e) => {
@@ -46,9 +56,9 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
     const result = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: elements.getElement(CardNumberElement),
-        billing_details: { 
+        billing_details: {
           name: cardName,
-          email: email
+          email: email || finalClientEmail // Ensure fallback email value is committed
         },
       },
     });
@@ -58,29 +68,32 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
     if (result.error) {
       setErrorMessage(result.error.message);
     } else if (result.paymentIntent.status === 'succeeded') {
-      router.push(`/dashboard/client/payments/success?session_id=${result.paymentIntent.id}&proposal_id=${proposalId}&task_id=${taskId}`);
+
+      // Verified non-empty data check object log
+      console.log("🚀 Redirecting to success page with data:", {
+        proposalId,
+        taskId,
+        freelancerEmail,
+        clientEmail: finalClientEmail, 
+        amount
+      });
+
+      // ✅ FIXED: Swapped variable reference to finalClientEmail
+      router.push(
+        `/dashboard/client/payments/success?session_id=${result.paymentIntent.id}&proposal_id=${proposalId}&task_id=${taskId}&freelancer_email=${encodeURIComponent(freelancerEmail)}&client_email=${encodeURIComponent(finalClientEmail)}&amount=${amount}`
+      );
     }
   };
 
   return (
     <form onSubmit={handlePaymentSubmit} className="space-y-5">
       {/* 1. Email Field */}
-      <div>
-        <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Billing Email Address</label>
-        <input 
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="client@example.com"
-          className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 rounded-xl px-4 py-3 text-xs text-zinc-200 placeholder-zinc-700 outline-none transition-colors"
-        />
-      </div>
+
 
       {/* 2. Cardholder Name */}
       <div>
         <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Cardholder Name</label>
-        <input 
+        <input
           type="text"
           required
           value={cardName}

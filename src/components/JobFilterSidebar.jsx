@@ -61,7 +61,7 @@ const JobFilterSidebar = ({
 
       {/* Filter 2: Live Status Tracks */}
       <FilterSection title="Status">
-        {['Open', 'In Progress', 'Completed'].map((status) => (
+        {['Open', 'in_progress', 'Completed'].map((status) => (
           <label key={status} className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
             <input 
               type="radio" 

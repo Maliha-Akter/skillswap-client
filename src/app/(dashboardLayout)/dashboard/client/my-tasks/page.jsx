@@ -228,7 +228,7 @@ const MyTasksPage = () => {
 
         {/* RADIO METRICS FIELD FOR STATUS MATCHING */}
         <TopFilterSection title="Status">
-          {['Open', 'In Progress', 'Completed'].map((status) => (
+          {['Open', 'in_progress', 'Completed'].map((status) => (
             <label key={status} className="flex items-center gap-2 text-zinc-300 text-xs cursor-pointer hover:text-teal-400">
               <input 
                 type="radio" 
