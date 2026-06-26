@@ -15,12 +15,16 @@ const TaskDetailsPage = ({ params }) => {
 
     const { data: session } = useSession();
     const userRole = session?.user?.role;
-    const isClientOrAdmin = userRole === 'client' || 'admin';
+    
+    const isClientOrAdmin = userRole === 'client' || userRole === 'admin';
 
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // 🎯 NEW STATE: Tracks if the current freelancer has already submitted a proposal
+    const [hasApplied, setHasApplied] = useState(false);
 
     const [proposalForm, setProposalForm] = useState({
         taskId: id || '',
@@ -53,11 +57,12 @@ const TaskDetailsPage = ({ params }) => {
         const fetchTaskDetails = async () => {
             try {
                 setLoading(true);
+                
+                // 1. Fetch Task Details
                 const response = await fetch(`http://localhost:8080/tasks/${id}`);
                 if (!response.ok) {
                     throw new Error("Could not find this task.");
                 }
-
                 const matchedTask = await response.json();
                 setTask(matchedTask);
                 setEditData({
@@ -66,6 +71,20 @@ const TaskDetailsPage = ({ params }) => {
                     category: matchedTask.category,
                     budget: matchedTask.budget
                 });
+
+                // 2. Fetch Proposals and check if the active freelancer already applied
+                if (activeUserEmail && !isClientOrAdmin) {
+                    const proposalsRes = await fetch(`http://localhost:8080/tasks/${id}/proposals`);
+                    if (proposalsRes.ok) {
+                        const proposalsData = await proposalsRes.json();
+                        // Adjust condition matching based on your DB field (e.g., freelancerEmail or freelancer_email)
+                        const alreadyApplied = proposalsData.proposals?.some(
+                            p => p.freelancerEmail === activeUserEmail || p.freelancer_email === activeUserEmail
+                        );
+                        setHasApplied(!!alreadyApplied);
+                    }
+                }
+
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -74,11 +93,11 @@ const TaskDetailsPage = ({ params }) => {
         };
 
         fetchTaskDetails();
-    }, [id, session]);
+    }, [id, session, isClientOrAdmin]);
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
-        if (isClientOrAdmin) return;
+        if (isClientOrAdmin || hasApplied) return;
 
         try {
             setSubmittingProposal(true);
@@ -111,6 +130,7 @@ const TaskDetailsPage = ({ params }) => {
                 estimatedDays: '',
                 coverNote: ''
             }));
+            setHasApplied(true); // Prevent re-submission right away
             setIsModalOpen(false);
             router.refresh();
 
@@ -167,14 +187,13 @@ const TaskDetailsPage = ({ params }) => {
     if (!task) return null;
 
     const isOpen = task.status?.toLowerCase() === 'open';
-    const hasProposals = task.proposals > 0;
 
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-4 md:p-12 selection:bg-teal-500/30 selection:text-teal-200 relative">
             <div className="max-w-5xl mx-auto flex flex-col gap-8">
 
                 {/* Top Navigation */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-white/5 pb-4">
                     <button
                         onClick={() => router.back()}
                         className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 text-xs font-semibold uppercase tracking-wider transition-colors group"
@@ -182,6 +201,22 @@ const TaskDetailsPage = ({ params }) => {
                         <FaArrowLeft className="transform group-hover:-translate-x-0.5 transition-transform" /> Back to Tasks
                     </button>
 
+                    {isClientOrAdmin && !isEditing && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="px-3 py-1.5 bg-zinc-900 border border-white/10 text-zinc-300 rounded-xl text-xs font-medium flex items-center gap-1.5 hover:text-teal-400 hover:border-teal-500/20 transition-all"
+                            >
+                                <FaEdit className="text-[10px]" /> Edit
+                            </button>
+                            <button
+                                onClick={handleDeleteTask}
+                                className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-medium flex items-center gap-1.5 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                <FaTrashAlt className="text-[10px]" /> Delete
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Edit Form Interface */}
@@ -264,13 +299,7 @@ const TaskDetailsPage = ({ params }) => {
                                         <FaCircle className="text-[6px] animate-pulse" /> {task.status || "Open"}
                                     </span>
                                     <span className="text-zinc-500 text-xs font-medium">
-                                        {/* // Replace your line with this to check both variations: */}
-                                        Posted: 
-                                        {/* {(task.createdAt || task.created_at)
-                                            ? new Date(task.createdAt || task.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
-                                            : 'N/A'
-                                        } */}
-                                        {task.createdAt ? new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                                        Posted: {task.createdAt ? new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                     </span>
                                 </div>
 
@@ -319,17 +348,24 @@ const TaskDetailsPage = ({ params }) => {
                                 </div>
 
                                 {isOpen ? (
-                                    <button
-                                        onClick={() => !isClientOrAdmin && setIsModalOpen(true)}
-                                        disabled={isClientOrAdmin}
-                                        title={isClientOrAdmin ? "To apply for this job you have to login as a freelancer" : ""}
-                                        className={`w-full text-center py-3 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isClientOrAdmin
-                                                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
-                                                : 'bg-teal-500 text-black hover:bg-teal-400 shadow-lg shadow-teal-500/10'
-                                            }`}
-                                    >
-                                        <FaPaperPlane className="text-[10px]" /> Submit a Proposal
-                                    </button>
+                                    hasApplied ? (
+                                        /* 🛠️ Dynamic applied state conditional view */
+                                        <div className="text-center py-3 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-xl text-xs font-semibold tracking-wide uppercase">
+                                            ✓ You have already applied
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => !isClientOrAdmin && setIsModalOpen(true)}
+                                            disabled={isClientOrAdmin}
+                                            title={isClientOrAdmin ? "To apply for this job you have to login as a freelancer" : ""}
+                                            className={`w-full text-center py-3 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isClientOrAdmin
+                                                    ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                                                    : 'bg-teal-500 text-black hover:bg-teal-400 shadow-lg shadow-teal-500/10'
+                                                }`}
+                                        >
+                                            <FaPaperPlane className="text-[10px]" /> Submit a Proposal
+                                        </button>
+                                    )
                                 ) : (
                                     <div className="text-center py-3 bg-zinc-950 text-zinc-500 border border-dashed border-white/5 rounded-xl text-xs italic">
                                         This task is closed for new proposals.
@@ -369,7 +405,6 @@ const TaskDetailsPage = ({ params }) => {
                         <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 custom-scrollbar">
                             <form onSubmit={handleSubmitProposal} className="flex flex-col gap-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {/* Task ID Input */}
                                     <div>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Task ID</label>
                                         <input
@@ -380,7 +415,6 @@ const TaskDetailsPage = ({ params }) => {
                                         />
                                     </div>
 
-                                    {/* Freelancer Email Input */}
                                     <div>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Freelancer Email</label>
                                         <div className="relative flex items-center">
@@ -397,7 +431,6 @@ const TaskDetailsPage = ({ params }) => {
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {/* Proposed Budget (USD) Input */}
                                     <div>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Proposed Budget (USD)</label>
                                         <div className="relative flex items-center">
@@ -414,7 +447,6 @@ const TaskDetailsPage = ({ params }) => {
                                         </div>
                                     </div>
 
-                                    {/* Estimated Days Input */}
                                     <div>
                                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Estimated Days</label>
                                         <div className="relative flex items-center">
@@ -432,7 +464,6 @@ const TaskDetailsPage = ({ params }) => {
                                     </div>
                                 </div>
 
-                                {/* Cover Note Message Input */}
                                 <div>
                                     <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Cover Note Message</label>
                                     <div className="relative flex">
@@ -448,7 +479,6 @@ const TaskDetailsPage = ({ params }) => {
                                     </div>
                                 </div>
 
-                                {/* Footer Action Buttons */}
                                 <div className="flex justify-end gap-3 pt-4 border-t border-white/5 bg-zinc-900 sticky bottom-0 z-10">
                                     <button
                                         type="button"
