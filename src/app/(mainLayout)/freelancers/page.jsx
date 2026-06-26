@@ -4,51 +4,59 @@ import React, { useState, useEffect } from 'react';
 import { Avatar } from "@heroui/react";
 import { FaDollarSign, FaBriefcase, FaCode, FaEnvelope } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-
-// Inside your BrowseFreelancerPage component, instantiate the router:
-
+// 🎯 Import from the new lib utility path
+import { calculateAverageRating, renderStars } from '@/lib/review';
 
 const BrowseFreelancerPage = () => {
     const [freelancers, setFreelancers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const router = useRouter();
+
     useEffect(() => {
         const fetchFreelancerDirectory = async () => {
             try {
                 setLoading(true);
 
-                // 1. Fetch filtered freelancer list directly from backend
                 const usersResponse = await fetch("http://localhost:8080/freelancers");
                 if (!usersResponse.ok) throw new Error("Failed to fetch freelancer profiles.");
                 const freelancerList = await usersResponse.json();
 
-                // 2. Fetch proposal array data to parse logic
                 const proposalsResponse = await fetch("http://localhost:8080/all-proposals-summary");
                 if (!proposalsResponse.ok) throw new Error("Failed to fetch proposal references.");
                 const allProposals = await proposalsResponse.json();
 
-                // 3. Map status condition algorithms to card displays
-                const computedFreelancers = freelancerList.map(freelancer => {
-                    // Match using your exact database key formatting: freelancer_email
-                    const matchingProposals = allProposals.filter(p => p.freelancer_email === freelancer.email);
+                // Concurrently pull data per user node matching records
+                const computedFreelancers = await Promise.all(
+                    freelancerList.map(async (freelancer) => {
+                        const matchingProposals = allProposals.filter(p => p.freelancer_email === freelancer.email);
+                        const hasPending = matchingProposals.some(p => p.status === "pending");
 
-                    // Check if any submitted proposal has status === "pending"
-                    const hasPending = matchingProposals.some(p => p.status === "pending");
+                        let jobsDoneText = "0 Jobs Done";
+                        if (!hasPending && matchingProposals.length > 0) {
+                            const completedCount = matchingProposals.filter(p => p.status === "completed").length;
+                            jobsDoneText = `${completedCount} Jobs Done`;
+                        }
 
-                    let jobsDoneText = "0 Jobs Done";
+                        let matchingReviews = [];
+                        try {
+                            const reviewResponse = await fetch(`http://localhost:8080/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
+                            if (reviewResponse.ok) {
+                                matchingReviews = await reviewResponse.json();
+                            }
+                        } catch (err) {
+                            console.warn(`Could not load review context for ${freelancer.email}:`, err.message);
+                        }
 
-                    if (!hasPending && matchingProposals.length > 0) {
-                        // Otherwise, sum up all completed jobs
-                        const completedCount = matchingProposals.filter(p => p.status === "completed").length;
-                        jobsDoneText = `${completedCount} Jobs Done`;
-                    }
+                        const averageScore = calculateAverageRating(matchingReviews);
 
-                    return {
-                        ...freelancer,
-                        jobsDone: jobsDoneText
-                    };
-                });
+                        return {
+                            ...freelancer,
+                            jobsDone: jobsDoneText,
+                            avgRating: averageScore
+                        };
+                    })
+                );
 
                 setFreelancers(computedFreelancers);
             } catch (err) {
@@ -72,24 +80,21 @@ const BrowseFreelancerPage = () => {
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-6 md:p-10">
             <div className="max-w-7xl mx-auto flex flex-col gap-8">
-
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">Browse Talent</h1>
                     <p className="text-zinc-400 text-sm mt-1">Find expert freelancers ready to collaborate on your tasks.</p>
                 </div>
 
-                {/* Grid Deck */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {freelancers.map((freelancer) => (
                         <div
                             key={freelancer._id}
-                            onClick={() => router.push(`/freelancers/${freelancer._id}`)} // Redirects dynamically
+                            onClick={() => router.push(`/freelancers/${freelancer._id}`)}
                             className="bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col justify-between hover:border-teal-500/30 hover:scale-[1.01] cursor-pointer transition-all duration-300 group"
                         >
                             <div>
                                 <div className="flex items-start gap-4">
-                                    <Avatar className="h-14 w-14 rounded-full border-2 border-teal-500/20">
-                                        {/* Only try to render the image if it exists and looks like a valid URL link */}
+                                    <Avatar className="h-14 w-14 rounded-full border-2 border-teal-500/20 shrink-0">
                                         {freelancer.image && freelancer.image.startsWith("http") && (
                                             <Avatar.Image src={freelancer.image} alt={freelancer.name} />
                                         )}
@@ -105,6 +110,11 @@ const BrowseFreelancerPage = () => {
                                         <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5 truncate">
                                             <FaEnvelope className="text-zinc-600 shrink-0" /> {freelancer.email}
                                         </p>
+                                        
+                                        {/* 🎯 Imported component logic renders stars */}
+                                        <div className="mt-1.5">
+                                            {renderStars(freelancer.avgRating, "text-[11px]")}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -139,7 +149,6 @@ const BrowseFreelancerPage = () => {
                                     </span>
                                 </div>
                             </div>
-
                         </div>
                     ))}
                 </div>
