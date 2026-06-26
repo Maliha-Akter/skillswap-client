@@ -10,3 +10,12 @@
 .animate-border {
   animation: rotate 1s linear infinite;
 }
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-move {
+  background-size: 200% auto;
+  animation: gradient-shift 1s ease infinite; /* Kept smooth but slightly crisper pacing */
+}
