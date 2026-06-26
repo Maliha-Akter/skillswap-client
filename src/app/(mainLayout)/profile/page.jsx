@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, Button } from "@heroui/react";
 import { 
     FaDollarSign, FaCode, FaEnvelope, FaCalendarAlt, 
-    FaUserTie, FaBuilding, FaUserCheck, FaQuoteLeft 
+    FaUserTie, FaBuilding, FaUserCheck, FaQuoteLeft, FaUserShield 
 } from 'react-icons/fa';
 // Import your Better-Auth client instance here
 import { authClient } from "@/lib/auth-client"; 
@@ -28,17 +28,21 @@ const ProfilePage = () => {
 
     // Checking existence of dynamic profile attributes
     const isClient = user.role?.toLowerCase() === 'client';
+    const isAdmin = user.role?.toLowerCase() === 'admin';
     const hasSkills = user.skills && user.skills.trim() !== "";
     const hasHourlyRate = user.hourlyRate && Number(user.hourlyRate) > 0;
+
+    // Both Clients and Admins should use the centered single-column layout
+    const useCenteredLayout = isClient || isAdmin;
 
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-6 md:p-12 flex items-center justify-center">
             <div className="w-full max-w-4xl mx-auto">
                 
-                {/* Dynamically adjust structural grid layout if the profile is a client */}
-                <div className={isClient ? "max-w-md mx-auto" : "grid grid-cols-1 md:grid-cols-3 gap-8 items-start"}>
+                {/* Dynamically adjust structural grid layout if the profile is a client or an admin */}
+                <div className={useCenteredLayout ? "max-w-md mx-auto" : "grid grid-cols-1 md:grid-cols-3 gap-8 items-start"}>
                     
-                    {/* IDENTITY CARD (Centered if client, column item if freelancer) */}
+                    {/* IDENTITY CARD (Centered if client/admin, column item if freelancer) */}
                     <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 flex flex-col items-center text-center shadow-xl w-full">
                         <div className="relative">
                             <Avatar className="h-28 w-28 rounded-full border-3 border-teal-500/30 shadow-inner">
@@ -60,11 +64,18 @@ const ProfilePage = () => {
                         
                         {/* Dynamic Role Designation Badge */}
                         <span className={`px-4 py-1 mt-3 text-xs font-semibold rounded-full uppercase tracking-wider border flex items-center gap-1.5 ${
-                            isClient 
-                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20" 
-                                : "bg-teal-500/10 text-teal-400 border-teal-500/20"
+                            isAdmin
+                                ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                : isClient 
+                                    ? "bg-purple-500/10 text-purple-400 border-purple-500/20" 
+                                    : "bg-teal-500/10 text-teal-400 border-teal-500/20"
                         }`}>
-                            {isClient ? (
+                            {isAdmin ? (
+                                <>
+                                    <FaUserShield className="text-[11px]" />
+                                    <span>Admin</span>
+                                </>
+                            ) : isClient ? (
                                 <>
                                     <FaBuilding className="text-[11px]" />
                                     <span>Client</span>
@@ -93,8 +104,8 @@ const ProfilePage = () => {
                         </Button>
                     </div>
 
-                    {/* FREELANCER WORKSPACE DETAILS (Hidden completely if user is a client) */}
-                    {!isClient && (
+                    {/* FREELANCER WORKSPACE DETAILS (Hidden completely if user is a client or an admin) */}
+                    {!useCenteredLayout && (
                         <div className="md:col-span-2 flex flex-col gap-6">
                             
                             {/* Biography Block */}

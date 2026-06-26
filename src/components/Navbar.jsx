@@ -40,7 +40,12 @@ export default function Navbar() {
     { label: "Browse Freelancers", href: "/freelancers" },
   ];
 
-  const dashboardHref = user?.role === "client" ? "/dashboard/client" : "/dashboard/freelancer";
+  const dashboardHref =
+    user?.role === "admin"
+      ? "/dashboard/admin"
+      : user?.role === "client"
+        ? "/dashboard/client"
+        : "/dashboard/freelancer";
   const privateLinks = [
     { label: "Dashboard", href: dashboardHref },
     { label: "Profile", href: "/profile" },

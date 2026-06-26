@@ -44,6 +44,7 @@ const DashboardSideBar = () => {
   ];
 
   const adminMenu = [
+    { key: "overview", label: "Dashboard", icon: FaChartLine, href: "/dashboard/admin" },
     { key: "users", label: "Manage Users", icon: FaUserTie, href: "/dashboard/admin/users" },
     { key: "tasks", label: "Moderate Tasks", icon: FaClipboardList, href: "/dashboard/admin/tasks" },
     { key: "transactions", label: "Transactions", icon: FaMoneyBillWave, href: "/dashboard/admin/transactions" },

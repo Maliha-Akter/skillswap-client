@@ -15,7 +15,7 @@ const TaskDetailsPage = ({ params }) => {
 
     const { data: session } = useSession();
     const userRole = session?.user?.role;
-    const isClient = userRole === 'client';
+    const isClientOrAdmin = userRole === 'client' || 'admin';
 
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -78,7 +78,7 @@ const TaskDetailsPage = ({ params }) => {
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
-        if (isClient) return;
+        if (isClientOrAdmin) return;
 
         try {
             setSubmittingProposal(true);
@@ -182,26 +182,6 @@ const TaskDetailsPage = ({ params }) => {
                         <FaArrowLeft className="transform group-hover:-translate-x-0.5 transition-transform" /> Back to Tasks
                     </button>
 
-                    {/* <div className="flex items-center gap-2">
-                        {isOpen && !isEditing && (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-3.5 py-2 rounded-xl border border-white/5 transition-colors"
-                            >
-                                <FaEdit className="text-teal-400" /> Edit Task
-                            </button>
-                        )}
-                        <button
-                            onClick={handleDeleteTask}
-                            disabled={hasProposals}
-                            className={`flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-xl border transition-all ${hasProposals
-                                    ? 'bg-zinc-900/40 text-zinc-600 border-white/5 cursor-not-allowed'
-                                    : 'bg-red-950/20 hover:bg-red-900 hover:text-white text-red-400 border-red-900/30'
-                                }`}
-                        >
-                            <FaTrashAlt /> Delete Task
-                        </button>
-                    </div> */}
                 </div>
 
                 {/* Edit Form Interface */}
@@ -340,10 +320,10 @@ const TaskDetailsPage = ({ params }) => {
 
                                 {isOpen ? (
                                     <button
-                                        onClick={() => !isClient && setIsModalOpen(true)}
-                                        disabled={isClient}
-                                        title={isClient ? "To apply for this job you have to login as a freelancer" : ""}
-                                        className={`w-full text-center py-3 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isClient
+                                        onClick={() => !isClientOrAdmin && setIsModalOpen(true)}
+                                        disabled={isClientOrAdmin}
+                                        title={isClientOrAdmin ? "To apply for this job you have to login as a freelancer" : ""}
+                                        className={`w-full text-center py-3 font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isClientOrAdmin
                                                 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
                                                 : 'bg-teal-500 text-black hover:bg-teal-400 shadow-lg shadow-teal-500/10'
                                             }`}
