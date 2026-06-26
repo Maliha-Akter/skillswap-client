@@ -31,7 +31,7 @@ const DashboardSideBar = () => {
     { key: "post-task", label: "Post a Task", icon: FaBriefcase, href: "/dashboard/client/post-task" },
     { key: "my-tasks", label: "My Tasks", icon: FaListAlt, href: "/dashboard/client/my-tasks" },
     { key: "proposals", label: "Manage Proposals", icon: FaClipboardList, href: "/dashboard/client/manage-proposals" },
-    { key: "payments", label: "Payment History", icon: FaMoneyBillWave, href: "/dashboard/client/payment" },
+    { key: "payments", label: "Payment History", icon: FaMoneyBillWave, href: "/dashboard/client/payments" },
   ];
 
   const freelancerMenu = [
