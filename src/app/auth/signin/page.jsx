@@ -31,14 +31,15 @@ export default function LoginPage() {
             const { error } = await authClient.signIn.email({
                 email,
                 password,
-                callbackURL: callbackUrl, // Better-Auth redirects automatically if set up, or handles internally
+                callbackURL: callbackUrl,
             });
 
             if (error) {
+                // Captures "Your account has been suspended by an administrator." directly from backend hook
                 toast.error(error.message || "Login failed.");
             } else {
                 toast.success("Welcome back!");
-                router.push(callbackUrl); // Fallback manual redirection
+                router.push(callbackUrl);
                 router.refresh();
             }
         } catch (err) {
@@ -52,16 +53,17 @@ export default function LoginPage() {
         try {
             await authClient.signIn.social({
                 provider: "google",
-                callbackURL: window.location.origin + callbackUrl, // Full absolute URL required by social providers
+                callbackURL: window.location.origin + callbackUrl,
             });
         } catch (err) {
-            toast.error("Failed to authenticate with Google.");
+            // Social errors thrown during redirection callback pipeline are intercepted here
+            toast.error("Failed to authenticate with Google or account is restricted.");
         }
     };
 
     return (
         <main className="flex min-h-screen w-full bg-black">
-            {/* Animation Section moved to the left */}
+            {/* Animation Section */}
             <section className="hidden lg:flex flex-1 items-center justify-center bg-black overflow-hidden relative">
                 <div className="absolute w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
                 <div className="w-full max-w-lg z-10">
@@ -69,7 +71,7 @@ export default function LoginPage() {
                 </div>
             </section>
 
-            {/* Form Section moved to the right */}
+            {/* Form Section */}
             <section className="flex-1 flex items-center justify-center p-6 bg-zinc-950">
                 <div className="relative p-[2px] rounded-[34px] overflow-hidden w-full max-w-md">
                     <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_280deg,#14b8a6_320deg,#facc15_360deg)] animate-border opacity-70"></div>
