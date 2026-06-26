@@ -319,22 +319,20 @@ const UserTableRow = ({ user, onToggleBlock }) => {
     };
 
     return (
-        <tr className={`border-b border-white/5 transition-colors duration-200 ${
-            user.isBlocked ? 'bg-red-950/5 opacity-70' : 'hover:bg-zinc-900/40'
-        }`}>
+        <tr className={`border-b border-white/5 transition-colors duration-200 ${user.isBlocked ? 'bg-red-950/5 opacity-70' : 'hover:bg-zinc-900/40'
+            }`}>
             {/* Avatar & Name */}
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                     {user.image ? (
-                        <img 
-                            src={user.image} 
-                            alt={user.name} 
-                            className={`w-9 h-9 rounded-full object-cover border ${user.isBlocked ? 'border-red-500/30' : 'border-white/10'}`} 
+                        <img
+                            src={user.image}
+                            alt={user.name}
+                            className={`w-9 h-9 rounded-full object-cover border ${user.isBlocked ? 'border-red-500/30' : 'border-white/10'}`}
                         />
                     ) : (
-                        <div className={`w-9 h-9 rounded-full border flex items-center justify-center text-zinc-400 ${
-                            user.isBlocked ? 'bg-red-500/5 border-red-500/20 text-red-400' : 'bg-white/5 border-white/10'
-                        }`}>
+                        <div className={`w-9 h-9 rounded-full border flex items-center justify-center text-zinc-400 ${user.isBlocked ? 'bg-red-500/5 border-red-500/20 text-red-400' : 'bg-white/5 border-white/10'
+                            }`}>
                             <FaUser className="text-xs" />
                         </div>
                     )}
@@ -353,11 +351,10 @@ const UserTableRow = ({ user, onToggleBlock }) => {
 
             {/* Platform Role Tag */}
             <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2.5 py-0.5 border rounded-full text-[10px] font-mono tracking-wider uppercase font-bold inline-block ${
-                    user.role === 'admin' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                    user.role === 'freelancer' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                    'bg-teal-500/10 border-teal-500/20 text-teal-400'
-                }`}>
+                <span className={`px-2.5 py-0.5 border rounded-full text-[10px] font-mono tracking-wider uppercase font-bold inline-block ${user.role === 'admin' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                        user.role === 'freelancer' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                            'bg-teal-500/10 border-teal-500/20 text-teal-400'
+                    }`}>
                     {user.role || 'client'}
                 </span>
             </td>
@@ -380,18 +377,27 @@ const UserTableRow = ({ user, onToggleBlock }) => {
             </td>
 
             {/* Action Operations */}
+            {/* Action Operations */}
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <button 
-                    onClick={handleAction}
-                    disabled={actionLoading}
-                    className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all border shadow-sm cursor-pointer disabled:opacity-50 min-w-[105px] text-center ${
-                        user.isBlocked
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black'
-                            : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black'
-                    }`}
-                >
-                    {actionLoading ? 'Updating...' : user.isBlocked ? 'Unblock' : 'Block'}
-                </button>
+                {/* 👉 If the user listed in this row is an admin, hide the action button 
+                  and show a non-actionable badge instead.
+                */}
+                {user.role === 'admin' ? (
+                    <span className="text-[11px] font-medium text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-xl border border-white/5 inline-block min-w-[105px] text-center select-none">
+                        Protected
+                    </span>
+                ) : (
+                    <button
+                        onClick={handleAction}
+                        disabled={actionLoading}
+                        className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all border shadow-sm cursor-pointer disabled:opacity-50 min-w-[105px] text-center ${user.isBlocked
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black'
+                                : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-black'
+                            }`}
+                    >
+                        {actionLoading ? 'Updating...' : user.isBlocked ? 'Unblock' : 'Block'}
+                    </button>
+                )}
             </td>
         </tr>
     );
@@ -483,8 +489,8 @@ const ManageUsersPage = () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                setUsers(prevUsers => 
-                    prevUsers.map(user => 
+                setUsers(prevUsers =>
+                    prevUsers.map(user =>
                         user._id === userId ? { ...user, isBlocked: !currentBlockStatus } : user
                     )
                 );
@@ -538,11 +544,10 @@ const ManageUsersPage = () => {
 
                 <TopFilterSection title="Account Role">
                     {['all', 'client', 'freelancer', 'admin'].map((role) => (
-                        <label key={role} className={`flex items-center gap-2 text-xs cursor-pointer px-3 py-1.5 rounded-xl border transition-all capitalize select-none font-medium ${
-                            selectedRole === role 
-                                ? 'bg-teal-500/10 border-teal-500/30 text-teal-400' 
+                        <label key={role} className={`flex items-center gap-2 text-xs cursor-pointer px-3 py-1.5 rounded-xl border transition-all capitalize select-none font-medium ${selectedRole === role
+                                ? 'bg-teal-500/10 border-teal-500/30 text-teal-400'
                                 : 'bg-zinc-950/40 border-white/5 text-zinc-400 hover:text-zinc-200'
-                        }`}>
+                            }`}>
                             <input
                                 type="radio"
                                 name="role-filter"
@@ -587,10 +592,10 @@ const ManageUsersPage = () => {
                         </thead>
                         <tbody>
                             {users.map((user) => (
-                                <UserTableRow 
-                                    key={user._id} 
-                                    user={user} 
-                                    onToggleBlock={handleToggleBlock} 
+                                <UserTableRow
+                                    key={user._id}
+                                    user={user}
+                                    onToggleBlock={handleToggleBlock}
                                 />
                             ))}
                         </tbody>
