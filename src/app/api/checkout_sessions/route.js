@@ -1,69 +1,35 @@
-// import { NextResponse } from 'next/server'
-// import { headers } from 'next/headers'
-// import { stripe } from '@/lib/stripe';
-
-// export async function POST(request) {
-//   try {
-//     const headersList = await headers()
-//     const origin = headersList.get('origin')
-
-//     // 1. Read JSON parameters sent from our frontend button handler
-//     const body = await request.json();
-//     const { taskId, proposalId, amount, taskTitle } = body;
-
-//     // Validation check to make sure parameters exist
-//     if (!taskId || !proposalId || !amount) {
-//       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
-//     }
-
-//     // 2. Convert raw numeric bid amount into currency cents (e.g., $97 -> 9700)
-//     const unitAmount = Math.round(parseFloat(amount) * 100);
-
-//     // 3. Create Stripe Checkout Session dynamically
-//     const session = await stripe.checkout.sessions.create({
-//       line_items: [
-//         {
-//           price_data: {
-//             currency: 'usd',
-//             product_data: {
-//               name: taskTitle || "Payment of Freelancer", 
-//               description: `Payment for proposal on task: ${taskTitle || "Target Job Listing"}`,
-//             },
-//             unit_amount: unitAmount, 
-//           },
-//           quantity: 1,
-//         },
-//       ],
-//       mode: 'payment', 
-//       success_url: `${origin}/dashboard/client/payments/success?session_id={CHECKOUT_SESSION_ID}`,
-//       cancel_url: `${origin}/dashboard/client/proposals`,
-//       metadata: {
-//         taskId,
-//         proposalId,
-//       },
-//     });
-
-//     // 4. Return the new session object containing the direct redirect URL string
-//     return NextResponse.json({ url: session.url });
-
-//   } catch (err) {
-//     console.error("Stripe Checkout Error:", err);
-//     return NextResponse.json(
-//       { error: err.message },
-//       { status: err.statusCode || 500 }
-//     )
-//   }
-// }
-
-
-
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers'; // 🌟 1. Required to read headers for auth
 import { stripe } from '@/lib/stripe';
+import { auth } from "@/lib/auth"; // 🌟 2. Import your server-side auth instance
 
 export async function POST(request) {
   try {
+    const headersList = await headers();
+
+    // 🔒 Security Step A: Authenticate the user token on the Next.js server side
+    const tokenData = await auth.api.getToken({
+      headers: headersList,
+    });
+    
+    if (!tokenData?.token) {
+      return NextResponse.json({ error: "Unauthorized: Missing or invalid token" }, { status: 401 });
+    }
+
+    // 🔒 Security Step B: Fetch the active session to verify identity
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+    const loggedInEmail = session?.user?.email;
+
+    // Read JSON parameters sent from the frontend client
     const body = await request.json();
     const { taskId, proposalId, amount, taskTitle, clientEmail, freelancerEmail } = body;
+
+    // 🔒 Security Step C: Cross-check identity to ensure they aren't spoofing another client
+    if (!loggedInEmail || loggedInEmail !== clientEmail) {
+      return NextResponse.json({ error: "Forbidden: You cannot create a checkout for another account." }, { status: 403 });
+    }
 
     // Validation check to make sure core tracking fields exist
     if (!taskId || !proposalId || !amount) {
@@ -72,6 +38,7 @@ export async function POST(request) {
 
     const unitAmount = Math.round(parseFloat(amount) * 100);
 
+    // Secure PaymentIntent creation with validated metadata
     const paymentIntent = await stripe.paymentIntents.create({
       amount: unitAmount,
       currency: 'usd',
@@ -79,7 +46,7 @@ export async function POST(request) {
         taskId,
         proposalId,
         taskTitle: taskTitle || "Payment of Freelancer",
-        clientEmail: clientEmail || "",
+        clientEmail: loggedInEmail, // Use verified email directly for ironclad tracking
         freelancerEmail: freelancerEmail || ""
       },
       automatic_payment_methods: { enabled: true },

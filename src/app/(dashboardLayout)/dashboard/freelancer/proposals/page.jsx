@@ -6,7 +6,7 @@ import {
     FaArrowLeft, FaHourglassHalf, FaCheckCircle,
     FaTimesCircle, FaDollarSign, FaCalendarAlt, FaExternalLinkAlt
 } from 'react-icons/fa';
-import { useSession } from '@/lib/auth-client';
+import { authClient, useSession } from '@/lib/auth-client';
 
 const MyProposalsPage = () => {
     const router = useRouter();
@@ -47,8 +47,21 @@ const MyProposalsPage = () => {
                 }
 
                 // Hit port 5000 to reach your Express MongoDB server pipeline
-                const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`);
+                // const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`);
+                // const { data: tokenData } = await authClient.token();
+                // const sessionToken = tokenData?.token;
 
+                // Fetch the unique proposal from your backend pipeline
+                const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`
+                , {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // 🌟 Injected verified bearer authentication token layout
+                        "Authorization": `Bearer ${sessionToken}`
+                    }
+                }
+            );
                 if (!response.ok) {
                     throw new Error("Failed to fetch your applications.");
                 }

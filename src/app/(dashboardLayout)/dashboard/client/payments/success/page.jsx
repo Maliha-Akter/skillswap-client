@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+// 🌟 1. Added useRef to create a strict execution guard
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 function PaymentSuccessContent() {
@@ -10,16 +11,15 @@ function PaymentSuccessContent() {
   const [error, setError] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
 
-  // Parse keys tracking both camelCase and snake_case variants safely
+  // 🌟 2. This reference flag ensures code only runs ONCE per lifecycle instance
+  const paymentFiredRef = useRef(false);
+
   const sessionId = searchParams.get("session_id") || searchParams.get("payment_intent") || searchParams.get("client_secret");
   const taskId = searchParams.get("task_id") || searchParams.get("taskId");
   const proposalId = searchParams.get("proposal_id") || searchParams.get("proposalId");
   const clientEmail = searchParams.get("client_email") || searchParams.get("clientEmail");
   const freelancerEmail = searchParams.get("freelancer_email") || searchParams.get("freelancerEmail");
   const amount = searchParams.get("amount");
-
-  // const taskTitle = searchParams.get("task_title") || searchParams.get("title") || "Target Job Listing";
-  // const workerName = searchParams.get("freelancer_name") || searchParams.get("freelancerName") || "Assigned Freelancer";
 
   useEffect(() => {
     if (!sessionId || !taskId || !proposalId) {
@@ -28,9 +28,12 @@ function PaymentSuccessContent() {
       return;
     }
 
+    // 🌟 3. Guard condition: If this effect has already fired, stop immediately!
+    if (paymentFiredRef.current) return;
+    paymentFiredRef.current = true; 
+
     const finalizePayment = async () => {
       try {
-        // FIXED: Explicitly sanitize the client email so it passes backend mongo validation rules
         const cleanClientEmail = clientEmail && clientEmail.trim() !== "" ? clientEmail : "buyer@taskhive.com";
 
         const response = await fetch("http://localhost:8080/payments", {
@@ -39,7 +42,6 @@ function PaymentSuccessContent() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            // ✅ Match exactly what your backend destructures!
             clientEmail: cleanClientEmail,
             freelancerEmail: freelancerEmail || "freelancer@gmail.com",
             taskId: taskId,
@@ -60,7 +62,7 @@ function PaymentSuccessContent() {
             taskId,
           });
         } else {
-          setError(data.message || "Backend database validation rejected the payload layout (400 Bad Request).");
+          setError(data.message || "Backend database validation rejected the payload layout.");
         }
       } catch (err) {
         console.error("Error finalizing payment workflow:", err);
@@ -125,18 +127,6 @@ function PaymentSuccessContent() {
 
           <table className="w-full text-left border-collapse text-xs">
             <tbody>
-              {/* <tr className="border-b border-zinc-800/50">
-                <td className="px-4 py-3 text-zinc-500 font-medium">Task Title</td>
-                <td className="px-4 py-3 text-zinc-200 text-right font-semibold tracking-wide truncate max-w-[240px]">
-                  {taskTitle}
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800/50">
-                <td className="px-4 py-3 text-zinc-500 font-medium">Worker Name</td>
-                <td className="px-4 py-3 text-zinc-200 text-right font-medium truncate max-w-[240px]">
-                  {workerName}
-                </td>
-              </tr> */}
               <tr className="border-b border-zinc-800/50">
                 <td className="px-4 py-3 text-zinc-500 font-medium">Transaction ID</td>
                 <td className="px-4 py-3 font-mono text-[11px] text-zinc-400 text-right break-all">

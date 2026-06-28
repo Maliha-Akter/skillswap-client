@@ -250,7 +250,7 @@ export default function FreelancerDashboard() {
                                     >
                                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                                             <p className="text-sm font-mono text-zinc-200 truncate">{contract.title}</p>
-                                            <p className="text-[10px] text-zinc-500 font-mono truncate">Client Ref: {contract.clientEmail || 'Private Buyer'}</p>
+                                            <p className="text-[10px] text-zinc-500 font-mono truncate">Client Ref: {contract.client_email || 'Private Buyer'}</p>
                                         </div>
                                         <div className="flex items-center justify-between sm:justify-end gap-6 border-t border-white/5 sm:border-0 pt-2 sm:pt-0">
                                             <div className="text-left sm:text-right">

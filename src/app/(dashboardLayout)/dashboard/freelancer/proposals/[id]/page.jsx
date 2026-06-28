@@ -5,6 +5,7 @@ import {
     FaArrowLeft, FaDollarSign, FaCalendarAlt, FaClock, 
     FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaBriefcase, FaEnvelope 
 } from 'react-icons/fa';
+import { authClient } from '@/lib/auth-client';
 
 const ProposalDetails = ({ params: paramsPromise }) => {
     // Safely unwrap params in Next.js App Router Client Components
@@ -24,7 +25,19 @@ const ProposalDetails = ({ params: paramsPromise }) => {
             try {
                 setLoading(true);
                 // Fetch the unique proposal from your backend pipeline
-                const response = await fetch(`http://localhost:8080/proposals/${id}`);
+                const { data: tokenData } = await authClient.token();
+                const sessionToken = tokenData?.token;
+
+                // Fetch the unique proposal from your backend pipeline
+                const response = await fetch(`http://localhost:8080/proposals/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // 🌟 Injected verified bearer authentication token layout
+                        "Authorization": `Bearer ${sessionToken}` 
+                    }
+                }
+            );
                 
                 if (!response.ok) {
                     throw new Error("Failed to load proposal records.");
