@@ -48,8 +48,8 @@ const MyProposalsPage = () => {
 
                 // Hit port 5000 to reach your Express MongoDB server pipeline
                 // const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`);
-                // const { data: tokenData } = await authClient.token();
-                // const sessionToken = tokenData?.token;
+                const { data: tokenData } = await authClient.token();
+                const sessionToken = tokenData?.token;
 
                 // Fetch the unique proposal from your backend pipeline
                 const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`

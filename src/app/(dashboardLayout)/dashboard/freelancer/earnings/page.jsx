@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from '@/lib/auth-client';
+import { useSession, authClient } from '@/lib/auth-client';
 import { 
     FaDollarSign, FaChartBar, FaReceipt, FaArrowUp, 
-    FaSpinner, FaFolderOpen, FaCalendarAlt, FaFingerprint 
+    FaSpinner, FaFolderOpen, FaCalendarAlt, FaFingerprint,
+    FaArrowRight, FaShieldAlt, FaBriefcase, FaCircle
 } from 'react-icons/fa';
 
 const EarningsPage = () => {
@@ -15,20 +16,33 @@ const EarningsPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchEarningsAnalytics = async () => {
-            // Wait until the session state is fully determined
+        const fetchEarningsData = async () => {
             if (sessionStatus === "loading") return;
             
             if (sessionStatus === "unauthenticated" || !session?.user?.email) {
-                setError("Authentication missing. Please log in.");
+                setError("Please log in first.");
                 setLoading(false);
                 return;
             }
             
             try {
                 setLoading(true);
-                const res = await fetch(`http://localhost:8080/freelancer-earnings?email=${encodeURIComponent(session.user.email)}`);
-                if (!res.ok) throw new Error("Could not fetch earnings data from server.");
+                const { data: tokenData } = await authClient.token();
+                const token = tokenData?.token;
+
+                if (!token) {
+                    throw new Error("Security token is missing. Please log in again.");
+                }
+                
+                // Fetch user earnings from the server using email
+                const res = await fetch(`http://localhost:8080/freelancer-earnings?email=${encodeURIComponent(session.user.email)}`, {
+                    method: "GET",
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!res.ok) throw new Error("Could not get data from the server.");
                 
                 const data = await res.json();
                 setFinanceData(data);
@@ -41,155 +55,211 @@ const EarningsPage = () => {
             }
         };
 
-        fetchEarningsAnalytics();
+        fetchEarningsData();
     }, [session, sessionStatus]);
 
-    // Render loading spinner
+    // Loading Screen
     if (sessionStatus === "loading" || loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-40 bg-zinc-950 text-zinc-400 gap-4">
-                <FaSpinner className="animate-spin text-emerald-500 text-3xl" />
-                <p className="font-medium tracking-wide text-xs font-mono">Syncing financial ledgers...</p>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-950 text-zinc-500 gap-3">
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                    <div className="absolute inset-0 border-2 border-zinc-900 rounded-full"></div>
+                    <div className="absolute inset-0 border-2 border-t-emerald-500 rounded-full animate-spin"></div>
+                </div>
+                <p className="font-mono text-[10px] tracking-wider uppercase">Loading your money logs...</p>
             </div>
         );
     }
 
-    // Render error container 
+    // Error Screen
     if (error) {
         return (
-            <div className="max-w-4xl mx-auto my-12 p-6 bg-red-950/20 border border-red-900/30 rounded-xl text-center">
-                <p className="text-red-400 font-mono text-xs">⚠️ Analytics Ledger Fault: {error}</p>
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 font-mono">
+                <div className="max-w-md w-full border border-red-900/40 bg-red-950/5 p-5 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 text-red-400 text-xs font-bold">
+                        <span>[SYSTEM ERROR]</span>
+                    </div>
+                    <p className="text-zinc-400 text-[11px] leading-relaxed">Something went wrong: {error}</p>
+                </div>
             </div>
         );
     }
 
-    // SAFE FALLBACK DESTRUCTURING: Guarantees your page can never crash even if arrays are empty
+    // Fallback data if backend values are missing
     const summary = financeData?.summary || { totalEarned: 0, paymentCount: 0, averagePerTask: 0 };
     const chartData = financeData?.chartData || [];
     const history = financeData?.history || [];
 
-    // Calculate maximum bar height context safely
     const maxChartValue = chartData.length > 0 ? Math.max(...chartData.map(d => d.earnings), 100) : 100;
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 sm:p-10 font-sans">
-            <div className="max-w-7xl mx-auto space-y-10">
+        <div className="min-h-screen bg-zinc-950 text-zinc-300 p-4 sm:p-8 lg:p-12 font-sans selection:bg-emerald-500/20 selection:text-emerald-300">
+            <div className="max-w-7xl mx-auto space-y-12">
                 
-                {/* Section Header */}
-                <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">Earnings</h1>
-                    <p className="text-zinc-400 text-xs tracking-wide">Track your income from completed tasks</p>
-                </div>
-
-                {/* Performance Metric Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Total Earned Card */}
-                    <div className="bg-zinc-900 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Total Earned</p>
-                            <h2 className="text-3xl font-black text-white font-mono">${summary.totalEarned}</h2>
-                            <p className="text-zinc-500 text-[11px] font-medium">From {summary.paymentCount} completed clearing payments</p>
+                {/* Top Header Panel */}
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-900 pb-8">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] tracking-wider uppercase">
+                            <FaShieldAlt className="text-emerald-500/70" />
+                            <span>Secure Vault</span>
                         </div>
-                        <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/10 text-amber-500">
-                            <FaDollarSign className="text-xl" />
-                        </div>
+                        <h1 className="text-2xl font-light tracking-tight text-white font-mono">
+                            My Earnings<span className="text-emerald-400 font-sans font-medium">.log</span>
+                        </h1>
                     </div>
-
-                    {/* Average Earned Card */}
-                    <div className="bg-zinc-900 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">Average Per Task</p>
-                            <h2 className="text-3xl font-black text-white font-mono">${summary.averagePerTask}</h2>
-                            <p className="text-zinc-500 text-[11px] font-medium">Average earning per completed task</p>
-                        </div>
-                        <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/10 text-emerald-400">
-                            <FaArrowUp className="text-xl" />
-                        </div>
+                    <div className="flex items-center gap-3 bg-zinc-900/40 border border-zinc-900 px-4 py-2 rounded-lg">
+                        <FaCircle className="text-[6px] text-emerald-500 animate-pulse" />
+                        <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[200px]">
+                            {session?.user?.email}
+                        </span>
                     </div>
                 </div>
 
-                {/* Monthly Performance Analytics Visualization */}
-                <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl p-6 shadow-2xl">
-                    <div className="flex items-center gap-2 mb-6">
-                        <FaChartBar className="text-amber-500 text-sm" />
-                        <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Monthly Earnings</h3>
-                    </div>
-
-                    <div className="h-64 flex items-end gap-2 pt-6 px-2 border-b border-zinc-800 font-mono">
-                        {chartData.map((bar, index) => {
-                            const heightPercentage = (bar.earnings / maxChartValue) * 100;
-                            return (
-                                <div key={index} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                                    {/* Interactive Hover Tooltip */}
-                                    {bar.earnings > 0 && (
-                                        <div className="absolute opacity-0 group-hover:opacity-100 bottom-full mb-2 bg-zinc-950 border border-zinc-800 text-white font-bold text-[10px] px-2 py-1 rounded shadow-xl transition-opacity duration-150 pointer-events-none z-10">
-                                            ${bar.earnings}
-                                        </div>
-                                    )}
-                                    {/* Rendered Bar Graph Column */}
-                                    <div 
-                                        style={{ height: `${Math.max(heightPercentage, bar.earnings > 0 ? 4 : 1)}%` }}
-                                        className={`w-full rounded-t-md transition-all duration-300 ${
-                                            bar.earnings > 0 
-                                                ? 'bg-gradient-to-t from-amber-600 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
-                                                : 'bg-zinc-800/40'
-                                        }`}
-                                    />
-                                    <span className="text-[10px] text-zinc-500 font-sans mt-3 transform group-hover:text-zinc-300 transition-colors">
-                                        {bar.name}
-                                    </span>
+                {/* Main Dashboard Grid Split */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    {/* Left Panel: Big Money Display Box */}
+                    <div className="lg:col-span-5 space-y-6">
+                        <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/80 rounded-2xl p-8 relative overflow-hidden shadow-2xl">
+                            <div className="absolute top-0 right-0 w-32 h-32 border-r border-t border-emerald-500/10 rounded-tr-2xl pointer-events-none" />
+                            
+                            <div className="space-y-8">
+                                <span className="inline-block text-[9px] font-mono tracking-widest uppercase bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+                                    Total Money Earned
+                                </span>
+                                
+                                <div className="space-y-1">
+                                    <span className="text-xs font-mono text-zinc-500">$ USD</span>
+                                    <h2 className="text-5xl font-extralight tracking-tight text-white font-mono">
+                                        {summary.totalEarned.toLocaleString()}
+                                    </h2>
                                 </div>
-                            );
-                        })}
+
+                                {/* Mini Stats Grid */}
+                                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-900 text-xs font-mono">
+                                    <div className="space-y-1">
+                                        <span className="text-zinc-500 text-[10px] block">Payments Received</span>
+                                        <span className="text-zinc-200 font-semibold flex items-center gap-1.5">
+                                            <FaReceipt className="text-zinc-600 text-[10px]" />
+                                            {summary.paymentCount} times
+                                        </span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-zinc-500 text-[10px] block">Average Pay</span>
+                                        <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                            <FaArrowUp className="text-[9px]" />
+                                            ${summary.averagePerTask} / job
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Informative Banner Box */}
+                        <div className="border border-zinc-900 bg-zinc-900/20 p-4 rounded-xl flex items-start gap-3">
+                            <FaBriefcase className="text-zinc-600 mt-0.5 text-xs shrink-0" />
+                            <p className="text-[11px] text-zinc-500 leading-relaxed">
+                                Money updates in real-time. Payments are sent automatically as soon as the client approves your completed work milestones.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right Panel: Clean Bar Chart Charting */}
+                    <div className="lg:col-span-7 bg-zinc-900/20 border border-zinc-900 rounded-2xl p-6 shadow-xl space-y-6">
+                        <div className="flex items-center justify-between border-b border-zinc-900/60 pb-4">
+                            <div className="flex items-center gap-2">
+                                <FaChartBar className="text-zinc-600 text-xs" />
+                                <h3 className="text-[11px] font-mono font-medium uppercase tracking-wider text-zinc-400">Monthly Yield Graph</h3>
+                            </div>
+                            <span className="text-[9px] font-mono text-zinc-600">MAX HEIGHT: ${maxChartValue}</span>
+                        </div>
+
+                        {/* Geometric Minimalist Chart Columns */}
+                        <div className="h-44 flex items-end gap-2 sm:gap-4 pt-4 px-2 font-mono">
+                            {chartData.map((bar, index) => {
+                                const heightPercentage = (bar.earnings / maxChartValue) * 100;
+                                return (
+                                    <div key={index} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                                        
+                                        {/* Simple Hover Popup Tooltip */}
+                                        {bar.earnings > 0 && (
+                                            <div className="absolute opacity-0 group-hover:opacity-100 bottom-full mb-2 bg-white text-zinc-950 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xl transition-all duration-150 pointer-events-none z-10">
+                                                ${bar.earnings}
+                                            </div>
+                                        )}
+                                        
+                                        {/* Colored column bar */}
+                                        <div 
+                                            style={{ height: `${Math.max(heightPercentage, bar.earnings > 0 ? 3 : 8)}%` }}
+                                            className={`w-full transition-all duration-300 ${
+                                                bar.earnings > 0 
+                                                    ? 'bg-emerald-500 group-hover:bg-emerald-400' 
+                                                    : 'bg-zinc-900'
+                                            }`}
+                                        />
+                                        
+                                        <span className="text-[9px] text-zinc-600 mt-2 truncate max-w-full group-hover:text-zinc-400 transition-colors">
+                                            {bar.name}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
-                {/* Historical Table Grid */}
-                <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl shadow-2xl overflow-hidden">
-                    <div className="p-6 border-b border-zinc-800/80 flex items-center gap-2">
-                        <FaReceipt className="text-zinc-400 text-sm" />
-                        <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Historical Account Statement</h3>
+                {/* History List Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                        <div className="flex items-center gap-2">
+                            <FaReceipt className="text-zinc-600 text-xs" />
+                            <h3 className="text-[11px] font-mono font-medium uppercase tracking-wider text-zinc-400">Payment History List</h3>
+                        </div>
+                        <span className="text-[10px] font-mono text-zinc-600">{history.length} jobs total</span>
                     </div>
 
                     {history.length === 0 ? (
-                        <div className="text-center py-16 text-zinc-500">
-                            <FaFolderOpen className="mx-auto text-3xl mb-3 text-zinc-700" />
-                            <p className="text-xs">No successful settlements recorded on this ledger account.</p>
+                        <div className="text-center py-12 border border-dashed border-zinc-900 rounded-xl text-zinc-600">
+                            <FaFolderOpen className="mx-auto text-xl mb-1.5 opacity-40" />
+                            <p className="text-[10px] font-mono">No payment records found on this account yet.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr className="bg-zinc-950 text-zinc-400 font-semibold tracking-wider border-b border-zinc-800/80 uppercase text-[10px]">
-                                        <th className="py-4 px-6">Task Description</th>
-                                        <th className="py-4 px-6">Client Profile</th>
-                                        <th className="py-4 px-6">Amount Secured</th>
-                                        <th className="py-4 px-6">Settlement Date</th>
-                                        <th className="py-4 px-6 font-mono">Core Transaction Hash</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-zinc-800/50 text-zinc-300">
-                                    {history.map((row, index) => (
-                                        <tr key={row.id || index} className="hover:bg-zinc-850/40 transition-colors">
-                                            <td className="py-4 px-6 font-semibold text-white max-w-xs truncate">{row.taskTitle}</td>
-                                            <td className="py-4 px-6 font-mono text-zinc-400">{row.clientEmail}</td>
-                                            <td className="py-4 px-6 font-bold font-mono text-emerald-400">+{row.amount}</td>
-                                            <td className="py-4 px-6 text-zinc-400 font-mono">
-                                                <div className="flex items-center gap-1.5">
-                                                    <FaCalendarAlt className="text-zinc-600 text-[10px]" />
-                                                    {new Date(row.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-zinc-500 font-mono text-[11px] tracking-tight">
-                                                <div className="flex items-center gap-1.5 max-w-[180px]">
-                                                    <FaFingerprint className="text-zinc-700 text-[10px] shrink-0" />
-                                                    <span className="truncate">{row.transactionId}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="divide-y divide-zinc-900 border-t border-zinc-900">
+                            {history.map((row, index) => (
+                                <div 
+                                    key={row.id || index} 
+                                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:bg-zinc-900/10 px-2 transition-colors duration-150"
+                                >
+                                    {/* Task Info & Transaction IDs */}
+                                    <div className="space-y-1 max-w-md">
+                                        <h4 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors truncate">
+                                            {row.taskTitle}
+                                        </h4>
+                                        <div className="flex items-center gap-3 text-[10px] font-mono text-zinc-600">
+                                            <span className="text-zinc-500">{row.clientEmail}</span>
+                                            <span className="hidden sm:inline text-zinc-800">/</span>
+                                            <span className="flex items-center gap-1">
+                                                <FaFingerprint className="text-[9px]" />
+                                                <span className="max-w-[100px] truncate">{row.transactionId}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Date & Earned Amounts */}
+                                    <div className="flex items-center justify-between sm:justify-end gap-6 font-mono text-xs">
+                                        <span className="text-zinc-600 text-[10px] flex items-center gap-1">
+                                            <FaCalendarAlt className="text-[9px]" />
+                                            {new Date(row.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-emerald-500 font-medium">
+                                                +${row.amount}
+                                            </span>
+                                            <FaArrowRight className="text-[9px] text-zinc-800 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -199,4 +269,4 @@ const EarningsPage = () => {
     );
 };
 
-export default EarningsPage; 
+export default EarningsPage;

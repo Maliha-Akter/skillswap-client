@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { Avatar, Button } from "@heroui/react";
-import { 
-    FaDollarSign, FaCode, FaEnvelope, FaCalendarAlt, 
-    FaUserTie, FaBuilding, FaUserCheck, FaQuoteLeft, FaUserShield 
+import {
+    FaDollarSign, FaCode, FaEnvelope, FaCalendarAlt,
+    FaUserTie, FaBuilding, FaUserCheck, FaQuoteLeft, FaUserShield
 } from 'react-icons/fa';
 // Import your Better-Auth client instance here
-import { authClient } from "@/lib/auth-client"; 
+import { authClient } from "@/lib/auth-client";
+import Link from 'next/link';
 
 const ProfilePage = () => {
     // Read the active session data directly using Better-Auth's hook
@@ -38,10 +39,10 @@ const ProfilePage = () => {
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-6 md:p-12 flex items-center justify-center">
             <div className="w-full max-w-4xl mx-auto">
-                
+
                 {/* Dynamically adjust structural grid layout if the profile is a client or an admin */}
                 <div className={useCenteredLayout ? "max-w-md mx-auto" : "grid grid-cols-1 md:grid-cols-3 gap-8 items-start"}>
-                    
+
                     {/* IDENTITY CARD (Centered if client/admin, column item if freelancer) */}
                     <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8 flex flex-col items-center text-center shadow-xl w-full">
                         <div className="relative">
@@ -61,15 +62,14 @@ const ProfilePage = () => {
                         </div>
 
                         <h1 className="text-2xl font-bold text-white mt-5 tracking-tight truncate w-full">{user.name}</h1>
-                        
+
                         {/* Dynamic Role Designation Badge */}
-                        <span className={`px-4 py-1 mt-3 text-xs font-semibold rounded-full uppercase tracking-wider border flex items-center gap-1.5 ${
-                            isAdmin
-                                ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                : isClient 
-                                    ? "bg-purple-500/10 text-purple-400 border-purple-500/20" 
-                                    : "bg-teal-500/10 text-teal-400 border-teal-500/20"
-                        }`}>
+                        <span className={`px-4 py-1 mt-3 text-xs font-semibold rounded-full uppercase tracking-wider border flex items-center gap-1.5 ${isAdmin
+                            ? "bg-red-500/10 text-red-400 border-red-500/20"
+                            : isClient
+                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                                : "bg-teal-500/10 text-teal-400 border-teal-500/20"
+                            }`}>
                             {isAdmin ? (
                                 <>
                                     <FaUserShield className="text-[11px]" />
@@ -99,15 +99,23 @@ const ProfilePage = () => {
                             </div>
                         </div>
 
-                        <Button size="lg" variant="flat" className="w-full mt-8 bg-zinc-950 border border-white/5 text-zinc-200 rounded-xl hover:border-white/10 transition-colors font-medium">
-                            Account Management
-                        </Button>
+                        {user?.role?.toLowerCase() === "freelancer" && (
+                            <Link href={`/dashboard/${user?.role?.toLowerCase()}/profile`} passHref legacyBehavior>
+                                <Button
+                                    size="lg"
+                                    variant="flat"
+                                    className="w-full mt-8 bg-zinc-950 border border-white/5 text-zinc-200 rounded-xl hover:border-white/10 transition-colors font-medium"
+                                >
+                                    Account Management
+                                </Button>
+                            </Link>
+                        )}
                     </div>
 
                     {/* FREELANCER WORKSPACE DETAILS (Hidden completely if user is a client or an admin) */}
                     {!useCenteredLayout && (
                         <div className="md:col-span-2 flex flex-col gap-6">
-                            
+
                             {/* Biography Block */}
                             <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 shadow-xl">
                                 <h2 className="text-base font-bold text-zinc-400 mb-3 flex items-center gap-2">
@@ -145,7 +153,7 @@ const ProfilePage = () => {
 
                         </div>
                     )}
-                    
+
                 </div>
 
             </div>

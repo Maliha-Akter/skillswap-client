@@ -15,7 +15,6 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Consolidated Real Live State
     const [dashboardData, setDashboardData] = useState({
         stats: {
             totalUsers: 0,
@@ -23,6 +22,7 @@ export default function AdminDashboard() {
             totalRevenue: 0,
             activeTasks: 0,
             completedTasks: 0,
+            in_progress: 0,
             pendingProposals: 0,
             blockedUsers: 0,
             successfulPayments: 0
@@ -35,7 +35,6 @@ export default function AdminDashboard() {
     });
 
     useEffect(() => {
-        // 1. Guard against non-admin entries safely once session resolves
         if (!sessionLoading && (!currentUser || currentUser.role !== 'admin')) {
             router.push('/');
             return;
@@ -46,11 +45,18 @@ export default function AdminDashboard() {
                 setLoading(true);
                 setError(null);
 
+                const { data: tokenData } = await authClient.token();
+                const secureToken = tokenData?.token;
+
+                if (!secureToken) {
+                    throw new Error("Security verification failed: Missing auth token context.");
+                }
+
                 const response = await fetch('http://localhost:8080/api/admin/overview-stats', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'user-email': currentUser?.email || ''
+                        'authorization': `Bearer ${secureToken}`
                     }
                 });
 
@@ -92,23 +98,36 @@ export default function AdminDashboard() {
         );
     }
 
-    // ✅ Correct line with absolute safety fallbacks:
-    const stats = dashboardData?.stats || { totalUsers: 0, totalTasks: 0, totalRevenue: 0, activeTasks: 0, completedTasks: 0, pendingProposals: 0, blockedUsers: 0, successfulPayments: 0 };
+    // ────────────────────────────────────────────────────────────────────────
+    // ✅ SAFE STATE NORMALIZATION (Handles "open", "Completed", "in_progress")
+    // ────────────────────────────────────────────────────────────────────────
+    const stats = dashboardData?.stats || {
+        totalUsers: 0, totalTasks: 0, totalRevenue: 0, activeTasks: 0,
+        completedTasks: 0, in_progress: 0, pendingProposals: 0,
+        blockedUsers: 0, successfulPayments: 0
+    };
+
     const revenueChart = dashboardData?.revenueChart || [];
-    const taskStatusChart = dashboardData?.taskStatusChart || { todo: 0, in_progress: 0, completed: 0 };
     const recentTasks = dashboardData?.recentTasks || [];
     const recentUsers = dashboardData?.recentUsers || [];
     const recentPayments = dashboardData?.recentPayments || [];
-    // Computed total tasks for pure pure CSS percentages
-    // ✅ Absolute safety matrix calculation
-    const graphTotalTasks = ((taskStatusChart?.todo || 0) + (taskStatusChart?.in_progress || 0) + (taskStatusChart?.completed || 0)) || 1;
+
+    // Map any dynamic raw DB values safely to standard lowercase keys
+    const rawChart = dashboardData?.taskStatusChart || {};
+    const taskStatusChart = {
+        todo: Number(rawChart.todo || rawChart.open || stats.totalTasks - (stats.completedTasks + (stats.in_progress || stats.activeTasks || 0)) || 0),
+        in_progress: Number(rawChart.in_progress || stats.in_progress || stats.activeTasks || 0),
+        completed: Number(rawChart.completed || rawChart.Completed || stats.completedTasks || 0)
+    };
+
+    const graphTotalTasks = (taskStatusChart.todo + taskStatusChart.in_progress + taskStatusChart.completed) || 1;
     const maxRevenuePoint = Math.max(...revenueChart.map(d => d.amount || 0), 1);
 
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-4 md:p-10 selection:bg-emerald-500/30">
             <div className="max-w-7xl mx-auto flex flex-col gap-8">
 
-                {/* 1. Header block */}
+                {/* Header block */}
                 <div className="border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
@@ -123,7 +142,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* 2. Top-tier metrics (KPI Section 1) */}
+                {/* Top-tier metrics */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 hover:border-white/10 transition">
                         <div className="flex items-center justify-between text-zinc-400"><span className="text-xs font-bold uppercase tracking-wider">Total Users</span><FaUsers className="text-zinc-500" /></div>
@@ -143,30 +162,63 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* 3. Secondary metrics (KPI Section 2) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                        <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400"><FaCheckCircle /></div>
-                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Completed Tasks</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.completedTasks}</p></div>
-                    </div>
-                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                        <div className="p-3 bg-amber-500/10 rounded-lg text-amber-400"><FaThList /></div>
-                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Pending Proposals</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.pendingProposals}</p></div>
-                    </div>
-                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                        <div className="p-3 bg-rose-500/10 rounded-lg text-rose-400"><FaBan /></div>
-                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Blocked Users</p><p className="text-xl font-bold font-mono text-rose-400">{stats.blockedUsers}</p></div>
-                    </div>
-                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                        <div className="p-3 bg-indigo-500/10 rounded-lg text-indigo-400"><FaRegCreditCard /></div>
-                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Successful Payments</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.successfulPayments}</p></div>
-                    </div>
-                </div>
+                {/* Main Visualization Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    {/* Pie / Donut Chart Panel */}
+                    <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 flex flex-col justify-between gap-6">
+                        <div>
+                            <h4 className="text-sm font-bold tracking-wider uppercase text-zinc-400 mb-6">Task Distribution Status</h4>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 my-4">
+                                {/* ✅ FIXED: Corrected mapping values to exact normalized lowercase keys */}
+                                <div
+                                    className="w-32 h-32 rounded-full relative shadow-[0_0_20px_rgba(0,0,0,0.5)] flex items-center justify-center flex-shrink-0"
+                                    style={{
+                                        background: `conic-gradient(
+                                            #10b981 0% ${(taskStatusChart.completed / graphTotalTasks) * 100}%, 
+                                            #f59e0b ${(taskStatusChart.completed / graphTotalTasks) * 100}% ${((taskStatusChart.completed + taskStatusChart.in_progress) / graphTotalTasks) * 100}%, 
+                                            #71717a ${((taskStatusChart.completed + taskStatusChart.in_progress) / graphTotalTasks) * 100}% 100%
+                                        )`
+                                    }}
+                                >
+                                    <div className="w-[70%] h-[70%] bg-zinc-950 rounded-full flex flex-col items-center justify-center border border-white/5">
+                                        <span className="text-xs font-mono text-zinc-500 uppercase tracking-tighter">Total</span>
+                                        <span className="text-lg font-black text-white font-mono">
+                                            {taskStatusChart.todo + taskStatusChart.in_progress + taskStatusChart.completed}
+                                        </span>
+                                    </div>
+                                </div>
 
-                {/* 4. Charts Visualization Block */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Revenue Line Graph via Tailwind Columns */}
-                    <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 lg:col-span-2">
+                                <div className="flex-1 flex flex-col gap-3 w-full">
+                                    {[
+                                        { key: 'completed', label: 'Completed', color: 'bg-emerald-400', text: 'text-emerald-400' },
+                                        { key: 'in_progress', label: 'In Progress', color: 'bg-amber-400', text: 'text-amber-400' },
+                                        { key: 'todo', label: 'Open / Todo', color: 'bg-zinc-500', text: 'text-zinc-400' }
+                                    ].map((item) => {
+                                        const value = taskStatusChart[item.key] || 0;
+                                        const pct = ((value / graphTotalTasks) * 100).toFixed(0);
+                                        return (
+                                            <div key={item.key} className="flex flex-col gap-1 w-full">
+                                                <div className="flex justify-between items-center text-xs font-mono">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`w-2.5 h-2.5 rounded-sm ${item.color}`} />
+                                                        <span className="text-zinc-300 font-semibold">{item.label}</span>
+                                                    </div>
+                                                    <span className={`${item.text} font-bold`}>{value} ({pct}%)</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-[11px] text-zinc-500 font-mono pt-4 border-t border-white/5 text-center">
+                            Platform Lifecycle Fulfillment Distribution
+                        </div>
+                    </div>
+
+                    {/* Revenue Line Graph */}
+                    <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 ">
                         <h4 className="text-sm font-bold tracking-wider uppercase text-zinc-400 mb-6 flex items-center gap-2"><FaChartBar className="text-emerald-400" /> Revenue Timeline Stream</h4>
                         <div className="h-48 flex items-end justify-between gap-2 pt-4 border-b border-white/10 px-2">
                             {revenueChart.map((point, index) => {
@@ -186,38 +238,30 @@ export default function AdminDashboard() {
                             })}
                         </div>
                     </div>
+                </div>
 
-                    {/* Task Status Breakdown Ratio */}
-                    <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 flex flex-col justify-between">
-                        <div>
-                            <h4 className="text-sm font-bold tracking-wider uppercase text-zinc-400 mb-6">Task Distribution Status</h4>
-                            <div className="flex flex-col gap-4">
-                                {['todo', 'in_progress', 'completed'].map((statusKey) => {
-                                    const value = taskStatusChart[statusKey] || 0;
-                                    const pct = ((value / graphTotalTasks) * 100).toFixed(0);
-                                    const colorMap = { todo: 'bg-zinc-500', in_progress: 'bg-amber-400', completed: 'bg-emerald-400' };
-                                    return (
-                                        <div key={statusKey} className="flex flex-col gap-1.5">
-                                            <div className="flex justify-between text-xs font-mono uppercase text-zinc-400">
-                                                <span>{statusKey.replace('_', ' ')} ({value})</span>
-                                                <span>{pct}%</span>
-                                            </div>
-                                            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                                <div style={{ width: `${pct}%` }} className={`h-full ${colorMap[statusKey] || 'bg-zinc-400'}`} />
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                        <div className="text-[11px] text-zinc-500 font-mono pt-4 border-t border-white/5 mt-4 text-center">
-                            Platform Lifecycle Fulfillment Distribution
-                        </div>
+                {/* Secondary metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                        <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400"><FaCheckCircle /></div>
+                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Completed Tasks</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.completedTasks}</p></div>
+                    </div>
+                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                        <div className="p-3 bg-amber-500/10 rounded-lg text-amber-400"><FaThList /></div>
+                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Pending Proposals</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.pendingProposals}</p></div>
+                    </div>
+                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                        <div className="p-3 bg-rose-500/10 rounded-lg text-rose-400"><FaBan /></div>
+                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Blocked Users</p><p className="text-xl font-bold font-mono text-rose-400">{stats.blockedUsers}</p></div>
+                    </div>
+                    <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                        <div className="p-3 bg-indigo-500/10 rounded-lg text-indigo-400"><FaRegCreditCard /></div>
+                        <div><p className="text-[11px] text-zinc-500 uppercase tracking-widest font-bold">Successful Payments</p><p className="text-xl font-bold font-mono text-zinc-200">{stats.successfulPayments}</p></div>
                     </div>
                 </div>
 
-                {/* 5. Live Activity Feeds & Data Streams */}
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                {/* Live Activity Feeds */}
+                <div className="gap-6">
                     {/* Recent Tasks */}
                     <div className="bg-zinc-900/20 border border-white/5 rounded-2xl p-5 flex flex-col gap-4">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 border-b border-white/5 pb-2">Recent Tasks Feed</h4>
@@ -227,7 +271,10 @@ export default function AdminDashboard() {
                                     <p className="text-sm font-semibold text-white truncate">{task.title}</p>
                                     <div className="flex justify-between items-center text-[11px] font-mono text-zinc-400 mt-1">
                                         <span className="text-emerald-400">${task.budget}</span>
-                                        <span className="capitalize px-1.5 py-0.5 rounded bg-zinc-800 border border-white/5 text-[10px]">{task.status}</span>
+                                        {/* ✅ FIXED: Clean case fallback rendering */}
+                                        <span className="capitalize px-1.5 py-0.5 rounded bg-zinc-800 border border-white/5 text-[10px]">
+                                            {task.status === 'open' ? 'Todo' : task.status}
+                                        </span>
                                     </div>
                                 </div>
                             ))}

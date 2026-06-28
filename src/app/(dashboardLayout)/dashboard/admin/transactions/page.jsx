@@ -18,11 +18,22 @@ export default function TransactionsPage() {
             if (transactions.length === 0) setLoading(true);
             setError(null);
 
+            // 1. Fetch token securely from auth store
+            const tokenData = await authClient.token();
+            const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;
+
+            if (!actualToken) {
+                console.warn("⚠️ ==> Authorization token string missing for transactions fetch pipeline.");
+                setError("Authentication session has expired. Please sign back in.");
+                setLoading(false);
+                return;
+            }
+
             const res = await fetch(`http://localhost:8080/payments`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "user-email": currentUser?.email || ""
+                    "Authorization": `Bearer ${actualToken}` // ✅ Attached Secure Bearer Token
                 }
             });
 
@@ -36,9 +47,12 @@ export default function TransactionsPage() {
             console.error("❌ ==> [FRONTEND TRANSACTIONS FAULT]:", err);
             setError(err.message);
         } finally {
-            setLoading(false);
+            closeLoadingPipeline();
         }
     };
+
+    // Helper to keep code clean and manageable
+    const closeLoadingPipeline = () => setLoading(false);
 
     useEffect(() => {
         if (currentUser && currentUser.role !== 'admin') {
@@ -95,37 +109,30 @@ export default function TransactionsPage() {
                                     key={tx._id} 
                                     className="border-b border-white/5 hover:bg-zinc-900/40 transition-colors duration-150"
                                 >
-                                    {/* transaction_id */}
                                     <td className="px-6 py-4 text-xs font-mono text-zinc-400 max-w-[150px] truncate" title={tx.transaction_id}>
                                         {tx.transaction_id || "N/A"}
                                     </td>
                                     
-                                    {/* client_email */}
                                     <td className="px-6 py-4 text-sm text-zinc-300 font-mono max-w-[180px] truncate" title={tx.client_email}>
                                         {tx.client_email || "N/A"}
                                     </td>
                                     
-                                    {/* freelancer_email */}
                                     <td className="px-6 py-4 text-sm text-zinc-300 font-mono max-w-[180px] truncate" title={tx.freelancer_email}>
                                         {tx.freelancer_email || "N/A"}
                                     </td>
                                     
-                                    {/* task_id */}
                                     <td className="px-6 py-4 text-xs font-mono text-zinc-500 max-w-[120px] truncate" title={tx.task_id}>
                                         {tx.task_id || "N/A"}
                                     </td>
                                     
-                                    {/* amount */}
                                     <td className="px-6 py-4 text-sm font-semibold text-emerald-400 font-mono">
                                         ${tx.amount || 0}
                                     </td>
                                     
-                                    {/* paid_at */}
                                     <td className="px-6 py-4 text-sm text-zinc-400 font-mono">
                                         {tx.paid_at ? new Date(tx.paid_at).toLocaleString() : "Recent"}
                                     </td>
                                     
-                                    {/* payment_status */}
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-0.5 border rounded-full text-[10px] font-mono tracking-wider font-bold inline-block uppercase ${
                                             String(tx.payment_status).toLowerCase() === 'paid' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :

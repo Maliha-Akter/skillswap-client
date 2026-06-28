@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from '@/lib/auth-client';
+import { authClient, useSession } from '@/lib/auth-client';
 import {
     FaBriefcase, FaCalendarAlt, FaEnvelope, FaDollarSign,
     FaExternalLinkAlt, FaPaperPlane, FaCheckCircle, FaTimes, FaSpinner, FaClock,
@@ -33,11 +33,17 @@ const ActiveProjects = () => {
         try {
             setIsDataFetching(true);
             console.log("⚡ FRONTEND: Initiating fetch for active projects with email:", email);
-
+            const { data: tokenData } = await authClient.token();
+            const token = tokenData?.token;
             const url = `http://localhost:8080/freelancer-active-projects?email=${encodeURIComponent(email)}`;
-            console.log("🔗 FRONTEND: Request URL is:", url);
 
-            const res = await fetch(url);
+            const res = await fetch(url
+                , {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
             console.log("📡 FRONTEND: Response received status:", res.status, res.statusText);
 
             if (!res.ok) throw new Error("Could not parse dashboard data streams.");
@@ -67,29 +73,6 @@ const ActiveProjects = () => {
         }
     }, [session, sessionStatus]);
 
-    // Secondary Trigger Effect: Fetches extended full schema metadata for single task selection
-    // useEffect(() => {
-    //     const fetchExtendedTaskProfile = async () => {
-    //         if (!selectedTaskId) return;
-    //         try {
-    //             setDetailsLoading(true);
-    //             setDetailsError(null);
-    //             const res = await fetch(`http://localhost:8080/task-details/${selectedTaskId}`);
-    //             if (!res.ok) throw new Error("Could not retrieve deep metadata specs for this task record.");
-
-    //             const data = await res.json();
-    //             setDetailsData(data);
-    //         } catch (err) {
-    //             console.error("❌ Details Error:", err.message);
-    //             setDetailsError(err.message);
-    //         } finally {
-    //             setDetailsLoading(false);
-    //         }
-    //     };
-
-    //     fetchExtendedTaskProfile();
-    // }, [selectedTaskId]);
-    // Secondary Trigger Effect: Fetches extended full schema metadata for single task selection
     useEffect(() => {
         const fetchExtendedTaskProfile = async () => {
             if (!selectedTaskId) return;
@@ -97,9 +80,19 @@ const ActiveProjects = () => {
                 setDetailsLoading(true);
                 setDetailsError(null);
 
-                console.log(`📡 FRONTEND: Fetching deep metadata for Task ID: ${selectedTaskId}`);
-                const res = await fetch(`http://localhost:8080/task-details/${selectedTaskId}`);
+                const { data: tokenData } = await authClient.token();
+                const token = tokenData?.token;
 
+                if (!token) {
+                    throw new Error("Session token invalid.");
+                }
+
+                console.log(`📡 FRONTEND: Fetching deep metadata for Task ID: ${selectedTaskId}`);
+                const res = await fetch(`http://localhost:8080/task-details/${selectedTaskId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (!res.ok) throw new Error("Could not retrieve deep metadata specs for this task record.");
 
                 const data = await res.json();
@@ -136,9 +129,15 @@ const ActiveProjects = () => {
 
         try {
             setSubmitting(true);
+            const { data: tokenData } = await authClient.token();
+            const token = tokenData?.token;
+
             const response = await fetch(`http://localhost:8080/tasks/${activeProject.taskId}/submit-deliverable`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ deliverableUrl: deliverableUrl.trim() })
             });
 
@@ -364,8 +363,8 @@ const ActiveProjects = () => {
                                                     <FaTags className="text-[9px] opacity-70" /> {detailsData.category || 'General'}
                                                 </span>
                                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${detailsData.status === 'completed'
-                                                        ? 'bg-yellow-400/10 text-yellow-300 border border-yellow-400/20'
-                                                        : 'bg-teal-400/10 text-teal-300 border border-teal-400/20'
+                                                    ? 'bg-yellow-400/10 text-yellow-300 border border-yellow-400/20'
+                                                    : 'bg-teal-400/10 text-teal-300 border border-teal-400/20'
                                                     }`}>
                                                     {detailsData.status}
                                                 </span>

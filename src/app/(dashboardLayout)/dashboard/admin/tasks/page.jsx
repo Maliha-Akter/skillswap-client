@@ -96,58 +96,75 @@ export default function ManageTaskPage() {
         );
     };
 
-   const fetchTasksMatrix = async () => {
-    // 1. 🛑 CRITICAL SAFEGUARD: Do not run the fetch if the user session hasn't loaded yet!
-    if (!currentUser?.email) {
-        console.log("==> [FRONTEND FETCH] Deferred: Awaiting user session context...");
-        return; 
-    }
-
-    try {
-        if (!searchQuery && tasks.length === 0) setLoading(true);
-        setError(null);
-
-        const params = new URLSearchParams();
-        if (debouncedSearch) params.append("search", debouncedSearch);
-        if (selectedCategories.length > 0) params.append("categories", selectedCategories.join(","));
-        if (selectedStatus && selectedStatus !== "all") params.append("status", selectedStatus);
-        if (budgetRange.min) params.append("minBudget", budgetRange.min);
-        if (budgetRange.max) params.append("maxBudget", budgetRange.max);
-
-        const requestUrl = `http://localhost:8080/api/admin/tasks?${params.toString()}`;
-
-        // 2. 🛡️ Check your backend index.js: Is it looking for 'user-email' or 'email'?
-        // Make sure this matches req.headers['user-email'] or req.headers.email
-        const res = await fetch(requestUrl, {
-            method: "GET",
-            headers: { 
-                "Content-Type": "application/json",
-                "user-email": currentUser.email // 👈 Sent safely now that we checked it exists above
-            }
-        });
-
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-            setTasks(result.data || []);
-        } else {
-            throw new Error(result.message || "Could not retrieve current tasks list.");
+    const fetchTasksMatrix = async () => {
+        if (!currentUser?.email) {
+            console.log("==> [FRONTEND FETCH] Deferred: Awaiting user session context...");
+            return; 
         }
-    } catch (err) {
-        console.error("❌ ==> [FRONTEND EXCEPTION CAUGHT]:", err);
-        setError(err.message);
-    } finally {
-        setLoading(false);
-    }
-};
+
+        try {
+            if (!searchQuery && tasks.length === 0) setLoading(true);
+            setError(null);
+
+            const params = new URLSearchParams();
+            if (debouncedSearch) params.append("search", debouncedSearch);
+            if (selectedCategories.length > 0) params.append("categories", selectedCategories.join(","));
+            if (selectedStatus && selectedStatus !== "all") params.append("status", selectedStatus);
+            if (budgetRange.min) params.append("minBudget", budgetRange.min);
+            if (budgetRange.max) params.append("maxBudget", budgetRange.max);
+
+            const requestUrl = `http://localhost:8080/api/admin/tasks?${params.toString()}`;
+
+            // ✅ Retrieve Token Data securely
+            const tokenData = await authClient.token();
+            const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;
+
+            if (!actualToken) {
+                console.warn("⚠️ ==> Authorization token string missing for tasks fetch pipeline.");
+                return;
+            }
+
+            const res = await fetch(requestUrl, {
+                method: "GET",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${actualToken}` // ✅ Attached Bearer Token
+                }
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                setTasks(result.data || []);
+            } else {
+                throw new Error(result.message || "Could not retrieve current tasks list.");
+            }
+        } catch (err) {
+            console.error("❌ ==> [FRONTEND EXCEPTION CAUGHT]:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleDeleteTask = async (taskId) => {
         try {
             console.log(`==> [FRONTEND DELETE] Triggered termination pipeline for ID: ${taskId}`);
+            
+            // ✅ Retrieve Token Data securely for termination operation
+            const tokenData = await authClient.token();
+            const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;
+
+            if (!actualToken) {
+                toast.error("Session verification failed. Authentication missing.");
+                return;
+            }
+
             const res = await fetch(`http://localhost:8080/api/admin/tasks/${taskId}`, { 
                 method: "DELETE",
                 headers: {
-                    "user-email": currentUser?.email || ""
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${actualToken}` // ✅ Attached Bearer Token
                 }
             });
             const result = await res.json();
@@ -165,7 +182,6 @@ export default function ManageTaskPage() {
     };
 
     useEffect(() => {
-        // 🛠️ LOG 3: Track lifecycle and authorization shifts
         console.log("==> [LIFECYCLE TRIGGER] Current User Evaluation State:", { 
             email: currentUser?.email, 
             role: currentUser?.role 
@@ -179,7 +195,7 @@ export default function ManageTaskPage() {
         if (currentUser?.email) {
             fetchTasksMatrix();
         } else {
-            console.warn("⚠️ [FETCH SUSPENDED] Awaiting explicit validation email context from authentication hook.");
+            console.warn("⚠️ [FETCH SUSPENDED] Awaiting explicit validation context from authentication hook.");
         }
     }, [currentUser, debouncedSearch, selectedCategories, selectedStatus, budgetRange.min, budgetRange.max, router]);
 
