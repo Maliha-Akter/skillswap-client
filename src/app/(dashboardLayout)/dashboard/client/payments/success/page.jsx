@@ -18,8 +18,8 @@ function PaymentSuccessContent() {
   const freelancerEmail = searchParams.get("freelancer_email") || searchParams.get("freelancerEmail");
   const amount = searchParams.get("amount");
 
-  const taskTitle = searchParams.get("task_title") || searchParams.get("title") || "Target Job Listing";
-  const workerName = searchParams.get("freelancer_name") || searchParams.get("freelancerName") || "Assigned Freelancer";
+  // const taskTitle = searchParams.get("task_title") || searchParams.get("title") || "Target Job Listing";
+  // const workerName = searchParams.get("freelancer_name") || searchParams.get("freelancerName") || "Assigned Freelancer";
 
   useEffect(() => {
     if (!sessionId || !taskId || !proposalId) {
@@ -119,13 +119,13 @@ function PaymentSuccessContent() {
         </div>
 
         <div className="border border-zinc-800/80 rounded-2xl overflow-hidden bg-zinc-950/40">
-          <div className="px-4 py-3 bg-zinc-900/60 border-b border-zinc-800/80 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+          <div className="px-4 py-3 bg-zinc-900/60 border-b border-zinc-800/80 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">
             Transaction Details
           </div>
 
           <table className="w-full text-left border-collapse text-xs">
             <tbody>
-              <tr className="border-b border-zinc-800/50">
+              {/* <tr className="border-b border-zinc-800/50">
                 <td className="px-4 py-3 text-zinc-500 font-medium">Task Title</td>
                 <td className="px-4 py-3 text-zinc-200 text-right font-semibold tracking-wide truncate max-w-[240px]">
                   {taskTitle}
@@ -136,7 +136,7 @@ function PaymentSuccessContent() {
                 <td className="px-4 py-3 text-zinc-200 text-right font-medium truncate max-w-[240px]">
                   {workerName}
                 </td>
-              </tr>
+              </tr> */}
               <tr className="border-b border-zinc-800/50">
                 <td className="px-4 py-3 text-zinc-500 font-medium">Transaction ID</td>
                 <td className="px-4 py-3 font-mono text-[11px] text-zinc-400 text-right break-all">

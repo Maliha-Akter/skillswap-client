@@ -48,6 +48,7 @@ export default function LoginPage() {
             setIsLoading(false);
         }
     };
+    
 
     const handleGoogleLogin = async () => {
         try {

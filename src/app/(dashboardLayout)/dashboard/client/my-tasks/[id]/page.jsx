@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-// Import your authentication hook here (e.g., next-auth, firebase, or custom provider)
-// import { useSession } from 'next-auth/react'; 
 import { FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, FaArrowLeft, FaSpinner, FaStar, FaFileInvoiceDollar } from 'react-icons/fa';
 import { useSession } from '@/lib/auth-client';
 
 const TaskDetailsPage = ({ params }) => {
     const router = useRouter();
-    
+
     // Safely unwrap params using React.use() for Next.js App Router compliance
     const unwrappedParams = React.use(params);
     const id = unwrappedParams?.id;
@@ -45,11 +43,10 @@ const TaskDetailsPage = ({ params }) => {
     const [reviewData, setReviewData] = useState({
         rating: 'Good',
         comment: '',
-        reviewerEmail: clientEmail, 
+        reviewerEmail: clientEmail,
         revieweeEmail: '' // Will be populated dynamically from the accepted proposal backend query
     });
 
-    // Keep reviewerEmail synced if clientEmail loads late from an async session hook
     useEffect(() => {
         if (clientEmail) {
             setReviewData(prev => ({ ...prev, reviewerEmail: clientEmail }));
@@ -70,6 +67,7 @@ const TaskDetailsPage = ({ params }) => {
                 }
                 const matchedTask = await taskResponse.json();
                 setTask(matchedTask);
+                console.log("=== Debug: Task Status ===", matchedTask.status);
                 setEditData({
                     title: matchedTask.title || '',
                     description: matchedTask.description || '',
@@ -94,7 +92,7 @@ const TaskDetailsPage = ({ params }) => {
                         const reviewResponse = await fetch(`http://localhost:8080/api/reviews?taskId=${id}`);
                         if (reviewResponse.ok) {
                             const reviewContainer = await reviewResponse.json();
-                            
+
                             if (reviewContainer) {
                                 // If a review was already completed and saved
                                 if (reviewContainer.review) {
@@ -179,7 +177,32 @@ const TaskDetailsPage = ({ params }) => {
             setIsSubmitting(false);
         }
     };
+    const handleStatusSubmit = async () => {
+        const confirmComplete = window.confirm("Are you sure you want to mark this task as completed?");
+        if (!confirmComplete) return;
 
+        try {
+            setIsSubmitting(true);
+            // ALIGNMENT 1: URL path changed from /status to /complete
+            const response = await fetch(`http://localhost:8080/api/tasks/${id}/complete`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                // ALIGNMENT 2: Passing clientEmail down to satisfy your security check
+                body: JSON.stringify({ email: clientEmail }),
+            });
+
+            const data = await response.json();
+            // Catching the explicit 'error' object your backend sends
+            if (!response.ok) throw new Error(data.error || "Failed to update status.");
+
+            setTask(prev => ({ ...prev, status: 'completed' }));
+            alert("Task marked as completed successfully!");
+        } catch (err) {
+            alert(`Status Update Error: ${err.message}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     const handleReviewSubmit = async (e) => {
         e.preventDefault();
         if (!reviewData.revieweeEmail) {
@@ -220,6 +243,7 @@ const TaskDetailsPage = ({ params }) => {
     if (!task) return null;
 
     const isOpen = task.status?.toLowerCase() === 'open';
+    const isInProgress = task.status === 'in_progress';
     const isCompleted = task.status?.toLowerCase() === 'completed';
     const isDeletable = task.status?.toLowerCase() === 'open' || task.status?.toLowerCase() === 'pending';
     const shouldDisableDelete = !isDeletable || isSubmitting;
@@ -272,13 +296,22 @@ const TaskDetailsPage = ({ params }) => {
                                     <FaEdit className="text-teal-400" /> Edit Content
                                 </button>
                             )}
+                            {isInProgress && (
+                                <button
+                                    onClick={handleStatusSubmit}
+                                    disabled={isSubmitting}
+                                    className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-black font-bold px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
+                                >
+                                    {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaCheck />} Mark as Complete
+                                </button>
+                            )}
 
                             <button
                                 onClick={handleDeleteTask}
                                 disabled={shouldDisableDelete}
                                 className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border transition-all ${shouldDisableDelete
-                                        ? 'bg-zinc-800/50 text-zinc-600 border-white/5 cursor-not-allowed'
-                                        : 'bg-red-500/10 hover:bg-red-500 hover:text-black text-red-400 border-red-500/20'
+                                    ? 'bg-zinc-800/50 text-zinc-600 border-white/5 cursor-not-allowed'
+                                    : 'bg-red-500/10 hover:bg-red-500 hover:text-black text-red-400 border-red-500/20'
                                     }`}
                             >
                                 {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaTrashAlt />} Delete Task
@@ -479,10 +512,10 @@ const TaskDetailsPage = ({ params }) => {
                                             <FaDollarSign className="text-xs" />{prop.proposed_budget || "0"}
                                         </div>
                                         <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded border ${prop.status?.toLowerCase() === 'approved' || prop.status?.toLowerCase() === 'accepted'
-                                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                                : prop.status?.toLowerCase() === 'rejected'
-                                                    ? 'bg-red-500/10 border-red-500/20 text-red-400'
-                                                    : 'bg-zinc-800 border-white/10 text-zinc-400'
+                                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                            : prop.status?.toLowerCase() === 'rejected'
+                                                ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                                                : 'bg-zinc-800 border-white/10 text-zinc-400'
                                             }`}>
                                             {prop.status || 'pending'}
                                         </span>

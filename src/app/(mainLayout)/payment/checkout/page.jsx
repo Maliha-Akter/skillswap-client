@@ -24,17 +24,21 @@ export default async function CheckoutPage({ searchParams }) {
   const displayTitle = task_title || "Alibaba Task";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 md:p-8 selection:bg-amber-500/30">
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 md:p-8 selection:bg-teal-500/30">
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start mt-8">
         
         {/* Left Panel: Transaction Breakdown & Proposal Data */}
         <div className="md:col-span-5 bg-zinc-900/40 border border-zinc-900 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 text-amber-500 font-bold tracking-wider uppercase text-xs">
-            <span className="p-1.5 bg-amber-500/10 rounded-lg">⛊</span> TaskHive Secure Checkout
+          {/* Updated text color to match the gradient start (Teal) */}
+          <div className="flex items-center gap-2 text-teal-400 font-bold tracking-wider uppercase text-xs">
+            <span className="p-1.5 bg-teal-500/10 rounded-lg">⛊</span> TaskHive Secure Checkout
           </div>
 
           <div className="space-y-1">
-            <div className="text-4xl font-black tracking-tight">${displayAmount}</div>
+            {/* Added a subtle gradient effect to the big price tag */}
+            <div className="text-4xl font-black tracking-tight bg-gradient-to-r from-teal-400 to-yellow-400 bg-clip-text text-transparent">
+              ${displayAmount}
+            </div>
             <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Total due today</div>
           </div>
 
@@ -53,7 +57,8 @@ export default async function CheckoutPage({ searchParams }) {
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Proposal State</span>
-              <span className="capitalize px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20">{status || 'Pending'}</span>
+              {/* Updated status badge to match the theme color scheme */}
+              <span className="capitalize px-2 py-0.5 rounded text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20">{status || 'Pending'}</span>
             </div>
             {submitted_at && (
               <div className="flex justify-between">

@@ -99,15 +99,18 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
           value={cardName}
           onChange={(e) => setCardName(e.target.value)}
           placeholder="John Doe"
-          className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 rounded-xl px-4 py-3 text-xs text-zinc-200 placeholder-zinc-700 outline-none transition-colors"
+          className="w-full bg-zinc-950 border border-zinc-800 focus:border-teal-400/50 rounded-xl px-4 py-3 text-xs text-zinc-200 placeholder-zinc-700 outline-none transition-colors"
         />
       </div>
 
       {/* 3. Discrete Card Number Input */}
       <div>
         <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Card Number</label>
-        <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-amber-500/50 transition-colors">
-          <CardNumberElement options={inputStyleOptions} />
+        <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-teal-400/50 transition-colors">
+          <CardNumberElement options={{
+            ...inputStyleOptions,
+            placeholder: '4242 4242 4242 4242' // Injects placeholder directly!
+          }} />
         </div>
       </div>
 
@@ -115,13 +118,13 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Expiry Date</label>
-          <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-amber-500/50 transition-colors">
+          <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-teal-400/50 transition-colors">
             <CardExpiryElement options={inputStyleOptions} />
           </div>
         </div>
         <div>
           <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">CVC</label>
-          <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-amber-500/50 transition-colors">
+          <div className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-200 focus-within:border-teal-400/50 transition-colors">
             <CardCvcElement options={inputStyleOptions} />
           </div>
         </div>
@@ -133,10 +136,11 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
         </div>
       )}
 
+      {/* Updated button style with your teal-to-yellow gradient */}
       <button
         type="submit"
         disabled={isProcessing || !stripe}
-        className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 text-zinc-950 disabled:text-zinc-600 text-xs font-black uppercase tracking-wider rounded-xl transition-colors shadow-xl flex items-center justify-center gap-2"
+        className="w-full py-3.5 bg-gradient-to-br from-teal-400 to-yellow-400 hover:opacity-90 disabled:bg-none disabled:bg-zinc-800 text-zinc-950 disabled:text-zinc-600 text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-xl flex items-center justify-center gap-2"
       >
         {isProcessing ? (
           <span className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
