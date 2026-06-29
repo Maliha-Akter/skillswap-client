@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { FaDollarSign, FaCalendarAlt, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { authClient } from "@/lib/auth-client";
 import Link from 'next/link';
@@ -346,4 +346,12 @@ const ClientMyTaskComponent = () => {
   );
 };
 
-export default ClientMyTaskComponent;
+function ClientMyTaskPage(props) {
+  return (
+    <Suspense fallback={null}>
+      <ClientMyTaskComponent {...props} />
+    </Suspense>
+  );
+}
+
+export default ClientMyTaskPage;

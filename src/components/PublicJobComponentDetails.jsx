@@ -74,14 +74,14 @@ const PublicJobComponentDetails = ({ params }) => {
 
                 // 1. Fetch Task Details (Public endpoint)
                 // Fixed: Added the missing comma right after the URL string template literal
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, 
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`,
                     {
-                    headers: {
-                        // Safe check: Only passes bearer token if it actually exists
-                        ...(token && { "Authorization": `Bearer ${token}` })
+                        headers: {
+                            // Safe check: Only passes bearer token if it actually exists
+                            ...(token && { "Authorization": `Bearer ${token}` })
+                        }
                     }
-                }
-            );
+                );
 
                 if (!response.ok) throw new Error("Could not find this task.");
                 const matchedTask = await response.json();
@@ -171,6 +171,10 @@ const PublicJobComponentDetails = ({ params }) => {
 
     const handleUpdateTask = async (e) => {
         e.preventDefault();
+        if (task.status?.toLowerCase() !== "open") {
+            toast.error("Action Blocked: You can only edit a task while the status is 'Open'.");
+            return;
+        }
         try {
             const { data: tokenData } = await authClient.token();
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}/edit`, {
@@ -240,10 +244,16 @@ const PublicJobComponentDetails = ({ params }) => {
                     {isClientOrAdmin && !isEditing && (
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => canModifyTask && setIsEditing(true)}
-                                disabled={!canModifyTask}
+                                onClick={() => {
+                                    if (task.status?.toLowerCase() !== "open") {
+                                        toast.error("Action Blocked: You can only edit a task while the status is 'Open'.");
+                                        return;
+                                    }
+                                    canModifyTask && setIsEditing(true);
+                                }}
+                                disabled={!canModifyTask || task.status?.toLowerCase() !== "open"}
                                 title={!canModifyTask ? "You did not post this job listing" : "Edit listing"}
-                                className={`px-3 py-1.5 border rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all ${canModifyTask
+                                className={`px-3 py-1.5 border rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all ${canModifyTask && task.status?.toLowerCase() === "open"
                                     ? 'bg-zinc-900 border-white/10 text-zinc-300 hover:text-teal-400 hover:border-teal-500/20'
                                     : 'bg-zinc-900/40 border-white/5 text-zinc-600 cursor-not-allowed'
                                     }`}
@@ -251,7 +261,7 @@ const PublicJobComponentDetails = ({ params }) => {
                                 <FaEdit className="text-[10px]" /> Edit
                             </button>
 
-                            <button
+                            {/* <button
                                 onClick={() => canModifyTask && handleDeleteTask()}
                                 disabled={!canModifyTask}
                                 title={!canModifyTask ? "You did not post this job listing" : "Delete listing"}
@@ -261,7 +271,7 @@ const PublicJobComponentDetails = ({ params }) => {
                                     }`}
                             >
                                 <FaTrashAlt className="text-[10px]" /> Delete
-                            </button>
+                            </button> */}
                         </div>
                     )}
                 </div>

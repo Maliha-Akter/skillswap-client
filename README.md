@@ -4,8 +4,8 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 
 ## 🔗 Project Links
 - **Live Deployment Platform**: [SkillSwap Live]()
-- **Frontend Repository**: [GitHub Client](https://github.com/username/skillswap-client)
-- **Backend Repository**: [GitHub Server](https://github.com/username/skillswap-server)
+- **Frontend Repository**: [GitHub Client](https://github.com/Maliha-Akter/skillswap-client)
+- **Backend Repository**: [GitHub Server](https://github.com/Maliha-Akter/skillswap-server)
 
 ---
 

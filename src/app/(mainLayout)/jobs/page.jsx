@@ -1,5 +1,5 @@
 import PublicJobComponent from '@/components/PublicJobComponent';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 export const metadata = {
   title: "Jobs",
@@ -7,7 +7,10 @@ export const metadata = {
 
 const JobsPage = () => {
   return (
-    <PublicJobComponent></PublicJobComponent>
+    <Suspense fallback={<div>Loading jobs...</div>}>
+        <PublicJobComponent />
+      </Suspense>
+
   );
 };
 

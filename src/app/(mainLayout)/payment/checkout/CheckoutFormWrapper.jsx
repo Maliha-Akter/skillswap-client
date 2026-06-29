@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 // ✅ FIXED: Added useSearchParams hook import
 import { useRouter, useSearchParams } from 'next/navigation'; 
 import { loadStripe } from '@stripe/stripe-js';
@@ -155,7 +155,10 @@ function DiscreteCheckoutForm({ amount, taskId, proposalId, clientSecret, freela
 export default function CheckoutFormWrapper(props) {
   return (
     <Elements stripe={stripePromise}>
-      <DiscreteCheckoutForm {...props} />
+      {/* Passing null means nothing is rendered until the form is ready */}
+      <Suspense fallback={null}>
+        <DiscreteCheckoutForm {...props} />
+      </Suspense>
     </Elements>
   );
 }

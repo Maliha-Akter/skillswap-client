@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { FaDollarSign, FaCalendarAlt, FaSearch, FaUser, FaEnvelope, FaSlidersH, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
@@ -374,4 +374,13 @@ const JobsPage = ({
   );
 };
 
-export default JobsPage;
+// Safe dynamic pre-rendering entry wrapper
+function SecureJobsLayout(props) {
+  return (
+    <Suspense fallback={null}>
+      <JobsPage {...props} />
+    </Suspense>
+  );
+}
+
+export default SecureJobsLayout;
