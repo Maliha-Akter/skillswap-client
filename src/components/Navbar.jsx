@@ -150,8 +150,8 @@ export default function Navbar() {
                     <p className="text-sm font-semibold text-gray-800 truncate">{user?.name}</p>
                     <p className="text-xs text-gray-500 truncate mt-0.5">{user?.email}</p>
                   </div>
-                  <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dashboard</Link>
-                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</Link>
+                  {/* <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dashboard</Link>
+                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</Link> */}
                   <button
                     onClick={handleSignOut}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50/70 font-semibold transition-colors cursor-pointer"

@@ -146,7 +146,7 @@ const ManageUsersPage = () => {
             if (debouncedSearch) params.append("search", debouncedSearch);
             if (selectedRole && selectedRole !== "all") params.append("role", selectedRole);
 
-            const targetUrl = `http://localhost:8080/api/admin/users?${params.toString()}`;
+            const targetUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?${params.toString()}`;
             console.log(`==> [FRONTEND TRACE 4: URL] Target URL configured: ${targetUrl}`);
 
             const tokenData = await authClient.token();
@@ -206,7 +206,7 @@ const ManageUsersPage = () => {
     const handleToggleBlock = async (userId, currentBlockStatus) => {
         try {
             console.log(`==> [FRONTEND BLOCK START] Target ID: ${userId}, Current Status: ${currentBlockStatus}`);
-            const targetUrl = `http://localhost:8080/api/admin/users/${userId}/block`;
+            const targetUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}/block`;
             const tokenData = await authClient.token();
 
             const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;

@@ -13,7 +13,7 @@ export default function PlatformStats() {
         const fetchPlatformData = async () => {
             try {
                 setLoading(true);
-                const res = await fetch('http://localhost:8080/api/platform-stats');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/platform-stats`);
                 if (!res.ok) throw new Error("Failed to sync platform directory matrices.");
 
                 const json = await res.json();

@@ -27,7 +27,7 @@ const ClientPayments = () => {
                 const { data: tokenData } = await authClient.token();
                 const token = tokenData?.token;
 
-                const backendUrl = `http://localhost:8080/client-payment-history?email=${encodeURIComponent(session.user.email)}`;
+                const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/client-payment-history?email=${encodeURIComponent(session.user.email)}`;
                 console.log("🛰️ FRONTEND: Sending request to Backend URL ->", backendUrl);
 
                 const response = await fetch(backendUrl, {

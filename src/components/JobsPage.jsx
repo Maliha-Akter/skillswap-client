@@ -152,7 +152,7 @@ const JobsPage = ({
         params.append("page", currentPage.toString());
         params.append("limit", limitCount.toString());
 
-        const response = await fetch(`http://localhost:8080/tasks?${params.toString()}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks?${params.toString()}`);
         if (!response.ok) throw new Error("Failed to fetch jobs from active systems.");
 
         const data = await response.json();

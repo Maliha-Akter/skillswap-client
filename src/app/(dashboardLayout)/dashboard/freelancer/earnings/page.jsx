@@ -35,7 +35,7 @@ const EarningsPage = () => {
                 }
                 
                 // Fetch user earnings from the server using email
-                const res = await fetch(`http://localhost:8080/freelancer-earnings?email=${encodeURIComponent(session.user.email)}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/freelancer-earnings?email=${encodeURIComponent(session.user.email)}`, {
                     method: "GET",
                     headers: {
                         'Authorization': `Bearer ${token}`

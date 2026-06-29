@@ -42,7 +42,7 @@ const MyProposalsPage = () => {
                 const { data: tokenData } = await authClient.token();
                 const sessionToken = tokenData?.token;
 
-                const response = await fetch(`http://localhost:8080/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/proposals?freelancerEmail=${encodeURIComponent(freelancerEmail)}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

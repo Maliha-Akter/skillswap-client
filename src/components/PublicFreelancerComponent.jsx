@@ -18,11 +18,11 @@ const PublicFreelancerComponent = () => {
             try {
                 setLoading(true);
 
-                const usersResponse = await fetch("http://localhost:8080/freelancers");
+                const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/freelancers`);
                 if (!usersResponse.ok) throw new Error("Failed to fetch freelancer profiles.");
                 const freelancerList = await usersResponse.json();
 
-                const proposalsResponse = await fetch("http://localhost:8080/all-proposals-summary");
+                const proposalsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/all-proposals-summary`);
                 if (!proposalsResponse.ok) throw new Error("Failed to fetch proposal references.");
                 const allProposals = await proposalsResponse.json();
 
@@ -40,7 +40,7 @@ const PublicFreelancerComponent = () => {
 
                         let matchingReviews = [];
                         try {
-                            const reviewResponse = await fetch(`http://localhost:8080/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
+                            const reviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
                             if (reviewResponse.ok) {
                                 matchingReviews = await reviewResponse.json();
                             }

@@ -1,9 +1,57 @@
-// ClientMyTaskDetails.jsx
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, FaArrowLeft, FaSpinner, FaStar, FaFileInvoiceDollar } from 'react-icons/fa';
+import { FaDollarSign, FaCalendarAlt, FaTrashAlt, FaEdit, FaCheck, FaArrowLeft, FaSpinner, FaStar, FaFileInvoiceDollar, FaExclamationTriangle } from 'react-icons/fa';
 import { authClient, useSession } from '@/lib/auth-client';
+import { toast } from 'react-toastify';
+import { Spinner } from "@heroui/react";
+
+// --- Reusable Custom Confirmation Modal ---
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, isDanger }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop Overlay */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
+
+            {/* Modal Body */}
+            <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 p-6 text-left shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                    <FaExclamationTriangle className={isDanger ? "text-red-500 text-xl" : "text-emerald-400 text-xl"} />
+                    <h3 className="text-lg font-bold text-white">{title}</h3>
+                </div>
+
+                <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
+                    {message}
+                </p>
+
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-xl px-4 py-2 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onConfirm();
+                            onClose();
+                        }}
+                        className={`rounded-xl px-4 py-2 text-xs font-bold transition-colors ${isDanger
+                                ? "bg-red-600 text-white hover:bg-red-500"
+                                : "bg-emerald-600 text-black hover:bg-emerald-500"
+                            }`}
+                    >
+                        {confirmText || 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const ClientMyTaskDetails = ({ params }) => {
     const router = useRouter();
@@ -20,6 +68,19 @@ const ClientMyTaskDetails = ({ params }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // --- MODAL STATE CONFIGURATION ---
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        confirmText: '',
+        isDanger: false,
+        onConfirm: () => { }
+    });
+
+    const openModal = (config) => setModalConfig({ ...config, isOpen: true });
+    const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
 
     // Proposals Pipeline State
     const [proposalsData, setProposalsData] = useState({ total: 0, proposals: [] });
@@ -70,7 +131,7 @@ const ClientMyTaskDetails = ({ params }) => {
                 };
 
                 // 1. Fetch main task payload (PUBLIC)
-                const taskResponse = await fetch(`http://localhost:8080/tasks/${id}`,
+                const taskResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`,
                     {
                         headers: {
                             // Safe check: Only passes bearer token if it actually exists
@@ -94,7 +155,7 @@ const ClientMyTaskDetails = ({ params }) => {
 
                 // 2. Fetch associated proposals data pipeline (PRIVATE - Token Applied)
                 try {
-                    const propResponse = await fetch(`http://localhost:8080/tasks/${id}/proposals`, {
+                    const propResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}/proposals`, {
                         headers: authHeaders
                     });
                     if (propResponse.ok) {
@@ -108,7 +169,7 @@ const ClientMyTaskDetails = ({ params }) => {
                 // 3. Fetch Review Configuration & Accepted Freelancer Match (PRIVATE - Token Applied)
                 if (matchedTask.status?.toLowerCase() === 'completed') {
                     try {
-                        const reviewResponse = await fetch(`http://localhost:8080/api/reviews?taskId=${id}`, {
+                        const reviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews?taskId=${id}`, {
                             headers: authHeaders
                         });
                         if (reviewResponse.ok) {
@@ -145,7 +206,7 @@ const ClientMyTaskDetails = ({ params }) => {
     const handleUpdateTask = async (e) => {
         e.preventDefault();
         if (task.status?.toLowerCase() !== 'open') {
-            alert("Action Blocked: You can only edit task details while the listing status is still 'Open'.");
+            toast.error("Action Blocked: You can only edit task details while the listing status is still 'Open'.");
             return;
         }
 
@@ -156,7 +217,7 @@ const ClientMyTaskDetails = ({ params }) => {
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
 
-            const response = await fetch(`http://localhost:8080/api/tasks/${id}/edit`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}/edit`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -170,32 +231,23 @@ const ClientMyTaskDetails = ({ params }) => {
 
             setTask(prev => ({ ...prev, ...editData }));
             setIsEditing(false);
-            alert("Task updated successfully!");
+            toast.success("Task updated successfully!");
         } catch (err) {
-            alert(`Update Error: ${err.message}`);
+            toast.error(`Update Error: ${err.message}`);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleDeleteTask = async () => {
-        const currentStatus = task.status?.toLowerCase();
-        if (currentStatus !== 'open' && currentStatus !== 'pending') {
-            alert("Action Blocked: You cannot delete a task after a freelancer's proposal has already been accepted.");
-            return;
-        }
-
-        const confirmDelete = window.confirm("Are you sure you want to permanently delete this task listing?");
-        if (!confirmDelete) return;
-
+    // Refactored to execute AFTER custom modal validation approval
+    const executeDeleteTask = async () => {
         try {
             setIsSubmitting(true);
 
-            // Fetch Token dynamically
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
 
-            const response = await fetch(`http://localhost:8080/tasks/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -204,28 +256,41 @@ const ClientMyTaskDetails = ({ params }) => {
             });
 
             if (!response.ok) throw new Error("Server rejected deletion request.");
-            router.push('/dashboard/client/my-tasks')
-            alert("Task deleted cleanly from collection.");
- 
+            router.push('/dashboard/client/my-tasks');
+            toast("Task deleted cleanly from collection.");
+
         } catch (err) {
-            alert(`Delete Error: ${err.message}`);
+            toast.error(`Delete Error: ${err.message}`);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleStatusSubmit = async () => {
-        const confirmComplete = window.confirm("Are you sure you want to mark this task as completed?");
-        if (!confirmComplete) return;
+    const handleDeleteTask = () => {
+        const currentStatus = task.status?.toLowerCase();
+        if (currentStatus !== 'open' && currentStatus !== 'pending') {
+            toast.error("Action Blocked: You cannot delete a task after a freelancer's proposal has already been accepted.");
+            return;
+        }
 
+        openModal({
+            title: 'Delete Task Listing',
+            message: 'Are you sure you want to permanently delete this task listing? This action cannot be undone.',
+            confirmText: 'Delete Permanently',
+            isDanger: true,
+            onConfirm: executeDeleteTask
+        });
+    };
+
+    // Refactored to execute AFTER custom modal validation approval
+    const executeStatusSubmit = async () => {
         try {
             setIsSubmitting(true);
 
-            // Fetch Token dynamically
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
 
-            const response = await fetch(`http://localhost:8080/api/tasks/${id}/complete`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}/complete`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -238,18 +303,32 @@ const ClientMyTaskDetails = ({ params }) => {
             if (!response.ok) throw new Error(data.error || "Failed to update status.");
 
             setTask(prev => ({ ...prev, status: 'completed' }));
-            alert("Task marked as completed successfully!");
+            toast.success("Task marked as completed successfully!");
+
+            // Next.js refresh to synchronize data
+            // router.refresh();
+            window.location.reload();
         } catch (err) {
-            alert(`Status Update Error: ${err.message}`);
+            toast.error(`Status Update Error: ${err.message}`);
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const handleStatusSubmit = () => {
+        openModal({
+            title: 'Complete Project Listing',
+            message: 'Are you sure you want to mark this task as completed? This transfers milestones configurations forward into evaluations processes.',
+            confirmText: 'Mark Completed',
+            isDanger: false,
+            onConfirm: executeStatusSubmit
+        });
+    };
+
     const handleReviewSubmit = async (e) => {
         e.preventDefault();
         if (!reviewData.revieweeEmail) {
-            alert("Error: No accepted freelancer was found for this task to leave a review for.");
+            toast.error("Error: No accepted freelancer was found for this task to leave a review for.");
             return;
         }
 
@@ -260,7 +339,7 @@ const ClientMyTaskDetails = ({ params }) => {
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
 
-            const response = await fetch(`http://localhost:8080/api/reviews`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -275,7 +354,7 @@ const ClientMyTaskDetails = ({ params }) => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || "Could not save review.");
 
-            alert("Review recorded successfully!");
+            toast.success("Review recorded successfully!");
             setExistingReview({
                 rating: reviewData.rating,
                 comment: reviewData.comment,
@@ -283,7 +362,7 @@ const ClientMyTaskDetails = ({ params }) => {
                 revieweeEmail: reviewData.revieweeEmail
             });
         } catch (err) {
-            alert(`Review Error: ${err.message}`);
+            toast.success(`Review Error: ${err.message}`);
         } finally {
             setReviewLoading(false);
         }
@@ -312,6 +391,17 @@ const ClientMyTaskDetails = ({ params }) => {
 
     return (
         <div className="bg-zinc-950 min-h-screen text-zinc-100 p-6 md:p-10">
+            {/* Modal Injection */}
+            <ConfirmationModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                confirmText={modalConfig.confirmText}
+                isDanger={modalConfig.isDanger}
+            />
+
             <div className="max-w-4xl mx-auto flex flex-col gap-6">
 
                 {/* Back Link */}
@@ -351,9 +441,19 @@ const ClientMyTaskDetails = ({ params }) => {
                                 <button
                                     onClick={handleStatusSubmit}
                                     disabled={isSubmitting}
-                                    className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-black font-bold px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-2 text-xs bg-emerald-600 hover:bg-emerald-500 text-black font-bold px-3 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaCheck />} Mark as Complete
+                                    {isSubmitting ? (
+                                        <>
+                                            <Spinner size="sm" color="current" />
+                                            <span>Completing...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FaCheck />
+                                            <span>Mark as Complete</span>
+                                        </>
+                                    )}
                                 </button>
                             )}
 

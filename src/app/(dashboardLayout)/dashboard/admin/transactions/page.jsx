@@ -29,7 +29,7 @@ export default function TransactionsPage() {
                 return;
             }
 
-            const res = await fetch(`http://localhost:8080/payments`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

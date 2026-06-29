@@ -89,7 +89,7 @@ export default function FeaturedTasks() {
         const fetchFeaturedTasks = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:8080/api/tasks/featured-open');
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/featured-open`);
                 const result = await response.json();
 
                 if (response.ok && result.success) {

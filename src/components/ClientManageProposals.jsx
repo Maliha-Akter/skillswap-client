@@ -34,6 +34,7 @@ const ClientManageProposals = () => {
         const fetchDataAndCheckPayments = async () => {
             try {
                 setLoading(true);
+                
                 const clientEmail = data.user.email;
 
                 // 🌟 Fetch Token from authClient (Client-side)
@@ -45,7 +46,7 @@ const ClientManageProposals = () => {
                 }
 
                 // 1. Fetch proposals for jobs posted by this client
-                const proposalsResponse = await fetch(`http://localhost:8080/client-proposals?clientEmail=${encodeURIComponent(clientEmail)}`, {
+                const proposalsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/client-proposals?clientEmail=${encodeURIComponent(clientEmail)}`, {
                     headers: {
                         'Authorization': `Bearer ${token}` // 🔒 Attached JWT Token
                     }
@@ -57,16 +58,16 @@ const ClientManageProposals = () => {
                 setProposals(dataResults);
 
                 // 2. FETCH FROM PAYMENTS TABLE TO TRACK TRULY FINALIZED WORKFLOWS
-                const paymentsResponse = await fetch(`http://localhost:8080/client-payments?clientEmail=${encodeURIComponent(clientEmail)}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}` // 🔒 Attached JWT Token
-                    }
-                });
-                if (paymentsResponse.ok) {
-                    const paymentsData = await paymentsResponse.json();
-                    const paidIds = paymentsData.map(payment => String(payment.task_id || payment.taskId));
-                    setPaidTaskIds(paidIds);
-                }
+                // const paymentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/client-payments?clientEmail=${encodeURIComponent(clientEmail)}`, {
+                //     headers: {
+                //         'Authorization': `Bearer ${token}` // 🔒 Attached JWT Token
+                //     }
+                // });
+                // if (paymentsResponse.ok) {
+                //     const paymentsData = await paymentsResponse.json();
+                //     const paidIds = paymentsData.map(payment => String(payment.task_id || payment.taskId));
+                //     setPaidTaskIds(paidIds);
+                // }
 
             } catch (err) {
                 setError(err.message);
@@ -146,7 +147,7 @@ const ClientManageProposals = () => {
             // 🌟 Get Token before making the PATCH mutation request
             const { data: tokenData } = await authClient.token();
 
-            const response = await fetch(`http://localhost:8080/proposals/${proposalId}/reject`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/proposals/${proposalId}/reject`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

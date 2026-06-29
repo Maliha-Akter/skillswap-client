@@ -52,7 +52,7 @@ export default function AdminDashboard() {
                     throw new Error("Security verification failed: Missing auth token context.");
                 }
 
-                const response = await fetch('http://localhost:8080/api/admin/overview-stats', {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/overview-stats`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

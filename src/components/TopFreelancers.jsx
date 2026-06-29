@@ -99,7 +99,7 @@ const TopFreelancers = () => {
                 setError(null);
                 console.log("🚀 [TOP FREELANCERS] Starting to fetch directory profiles...");
 
-                const usersResponse = await fetch("http://localhost:8080/freelancers");
+                const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/freelancers`);
                 if (!usersResponse.ok) throw new Error("Failed to pull freelancer account database records.");
                 const freelancerList = await usersResponse.json();
                 console.log(`📦 [TOP FREELANCERS] Loaded ${freelancerList.length} total profiles for calculation processing.`);
@@ -108,7 +108,7 @@ const TopFreelancers = () => {
                     freelancerList.map(async (freelancer) => {
                         let matchingReviews = [];
                         try {
-                            const reviewResponse = await fetch(`http://localhost:8080/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
+                            const reviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
                             if (reviewResponse.ok) {
                                 matchingReviews = await reviewResponse.json();
                             }

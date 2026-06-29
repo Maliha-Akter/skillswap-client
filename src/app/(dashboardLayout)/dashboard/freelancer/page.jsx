@@ -41,7 +41,7 @@ export default function FreelancerDashboard() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch('http://localhost:8080/api/freelancer/overview-stats', {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/freelancer/overview-stats`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

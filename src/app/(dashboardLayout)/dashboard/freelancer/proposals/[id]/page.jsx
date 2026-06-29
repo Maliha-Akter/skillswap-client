@@ -29,7 +29,7 @@ const ProposalDetails = ({ params: paramsPromise }) => {
                 const sessionToken = tokenData?.token;
 
                 // Fetch the unique proposal from your backend pipeline
-                const response = await fetch(`http://localhost:8080/proposals/${id}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/proposals/${id}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

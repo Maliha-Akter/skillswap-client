@@ -205,15 +205,15 @@ const EditProfilePage = () => {
                             </label>
                             <Input
                                 placeholder="Enter your full name"
-                                labelPlacement="outside"
+                                labelplacement="outside"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 variant="bordered"
                                 className="text-white"
-                                classNames={{
+                                classnames={{
                                     inputWrapper: "bg-zinc-950 border-zinc-800 hover:border-zinc-700 focus-within:!border-emerald-500/40 h-12 rounded-xl transition-all"
                                 }}
-                                startContent={<FaUser className="text-zinc-500 text-xs mr-1 shrink-0" />}
+                                startcontent={<FaUser className="text-zinc-500 text-xs mr-1 shrink-0" />}
                                 required
                             />
                         </div>
@@ -258,14 +258,14 @@ const EditProfilePage = () => {
                             </label>
                             <Input
                                 placeholder="React, Next.js, Tailwind CSS, Node.js"
-                                labelPlacement="outside"
+                                labelplacement="outside"
                                 value={skills}
                                 onChange={(e) => setSkills(e.target.value)}
                                 variant="bordered"
-                                classNames={{
+                                classnames={{
                                     inputWrapper: "bg-zinc-950 border-zinc-800 hover:border-zinc-700 focus-within:!border-emerald-500/40 h-12 rounded-xl transition-all"
                                 }}
-                                startContent={<FaCode className="text-zinc-500 text-xs mr-1 shrink-0" />}
+                                startcontent={<FaCode className="text-zinc-500 text-xs mr-1 shrink-0" />}
                             />
                             <p className="text-zinc-500 text-[10px] font-mono mt-1">Please separate your skills using commas.</p>
                         </div>
@@ -294,14 +294,14 @@ const EditProfilePage = () => {
                             <Input
                                 placeholder="e.g., 50"
                                 type="number"
-                                labelPlacement="outside"
+                                labelplacement="outside"
                                 value={hourlyRate}
                                 onChange={(e) => setHourlyRate(e.target.value)}
                                 variant="bordered"
-                                classNames={{
+                                classnames={{
                                     inputWrapper: "bg-zinc-950 border-zinc-800 hover:border-zinc-700 focus-within:!border-emerald-500/40 h-12 rounded-xl transition-all"
                                 }}
-                                startContent={<FaDollarSign className="text-zinc-500 text-xs mr-1 shrink-0" />}
+                                startcontent={<FaDollarSign className="text-zinc-500 text-xs mr-1 shrink-0" />}
                             />
                         </div>
 

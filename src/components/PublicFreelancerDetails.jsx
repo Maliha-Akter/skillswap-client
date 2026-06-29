@@ -28,7 +28,7 @@ const PublicFreelancerDetails = () => {
                 setLoading(true);
 
                 // 1. Fetch Freelancer details
-                const usersResponse = await fetch("http://localhost:8080/freelancers");
+                const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/freelancers`);
                 if (!usersResponse.ok) throw new Error("Could not load premium talent registry.");
                 const freelancerList = await usersResponse.json();
 
@@ -39,7 +39,7 @@ const PublicFreelancerDetails = () => {
                 const targetEmail = targetFreelancer.email?.trim().toLowerCase();
 
                 // 2. Fetch Proposals Summary
-                const proposalsResponse = await fetch("http://localhost:8080/all-proposals-summary");
+                const proposalsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/all-proposals-summary`);
                 let matchingProposals = [];
 
                 if (proposalsResponse.ok) {
@@ -58,7 +58,7 @@ const PublicFreelancerDetails = () => {
 
                 // 3. Fetch Reviews
                 try {
-                    const reviewResponse = await fetch(`http://localhost:8080/api/freelancer-reviews?email=${encodeURIComponent(targetFreelancer.email)}`);
+                    const reviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/freelancer-reviews?email=${encodeURIComponent(targetFreelancer.email)}`);
 
                     if (reviewResponse.ok) {
                         const freelancerReviews = await reviewResponse.json();
@@ -150,9 +150,9 @@ const PublicFreelancerDetails = () => {
                             </div>
                         </div>
 
-                        <Button className="w-full bg-teal-500 hover:bg-teal-600 text-zinc-950 font-bold transition-all rounded-xl shadow-lg shadow-teal-500/10">
+                        {/* <Button className="w-full bg-teal-500 hover:bg-teal-600 text-zinc-950 font-bold transition-all rounded-xl shadow-lg shadow-teal-500/10">
                             Initiate Collaboration Proposal
-                        </Button>
+                        </Button> */}
                     </div>
 
                     {/* Right Column Details */}

@@ -1,9 +1,51 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaTrashAlt, FaFolderOpen, FaSlidersH } from 'react-icons/fa';
+import { FaSearch, FaTrashAlt, FaFolderOpen, FaSlidersH, FaExclamationTriangle } from 'react-icons/fa';
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+
+// ─── REUSABLE DELETE MODAL COMPONENT ──────────────────────────────────────
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, taskTitle, isDeleting }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-red-400">
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                        <FaExclamationTriangle size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Safety Violation Dropping</h3>
+                        <p className="text-xs text-zinc-400">This action cannot be undone.</p>
+                    </div>
+                </div>
+
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                    Are you sure you want to permanently delete <span className="text-white font-semibold">"{taskTitle}"</span> from the global matrices for safety guideline breaches?
+                </p>
+
+                <div className="flex justify-end items-center gap-3 mt-2">
+                    <button
+                        onClick={onClose}
+                        disabled={isDeleting}
+                        className="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-800 border border-white/5 text-zinc-300 hover:bg-zinc-700 transition-all cursor-pointer disabled:opacity-40"
+                    >
+                        Cancel Actions
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isDeleting}
+                        className="px-4 py-2 text-xs font-semibold rounded-xl bg-red-500 text-black font-bold hover:bg-red-400 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-40"
+                    >
+                        {isDeleting ? "Dropping Item..." : "Confirm Deletion"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // Reusable Top Filter Row Wrapper
 const TopFilterSection = ({ title, children }) => (
@@ -14,17 +56,7 @@ const TopFilterSection = ({ title, children }) => (
 );
 
 // Individual Row Component
-const TaskTableRow = ({ task, onDelete }) => {
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleDeleteClick = async () => {
-        if (window.confirm(`Are you sure you want to permanently delete "${task.title}" for safety violations?`)) {
-            setIsDeleting(true);
-            await onDelete(task._id);
-            setIsDeleting(false);
-        }
-    };
-
+const TaskTableRow = ({ task, onDeleteRequest }) => {
     return (
         <tr className="border-b border-white/5 hover:bg-zinc-900/40 transition-colors duration-150">
             <td className="px-6 py-4 max-w-[220px]">
@@ -50,12 +82,11 @@ const TaskTableRow = ({ task, onDelete }) => {
             </td>
             <td className="px-6 py-4 text-right">
                 <button
-                    onClick={handleDeleteClick}
-                    disabled={isDeleting}
-                    className="p-2 rounded-xl text-red-400 border border-red-500/10 bg-red-500/5 hover:bg-red-500 hover:text-black disabled:opacity-40 transition-all cursor-pointer"
+                    onClick={() => onDeleteRequest(task)}
+                    className="p-2 rounded-xl text-red-400 border border-red-500/10 bg-red-500/5 hover:bg-red-500 hover:text-black transition-all cursor-pointer"
                     title="Delete task row due to safety guideline breach"
                 >
-                    <FaTrashAlt size={13} className={isDeleting ? "animate-pulse" : ""} />
+                    <FaTrashAlt size={13} />
                 </button>
             </td>
         </tr>
@@ -70,6 +101,10 @@ export default function ManageTaskPage() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Modal Control Pipeline States
+    const [modalConfig, setModalConfig] = useState({ isOpen: false, activeTask: null });
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Filter parameters states
     const [searchQuery, setSearchQuery] = useState("");
@@ -113,9 +148,8 @@ export default function ManageTaskPage() {
             if (budgetRange.min) params.append("minBudget", budgetRange.min);
             if (budgetRange.max) params.append("maxBudget", budgetRange.max);
 
-            const requestUrl = `http://localhost:8080/api/admin/tasks?${params.toString()}`;
+            const requestUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/tasks?${params.toString()}`;
 
-            // ✅ Retrieve Token Data securely
             const tokenData = await authClient.token();
             const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;
 
@@ -128,7 +162,7 @@ export default function ManageTaskPage() {
                 method: "GET",
                 headers: { 
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${actualToken}` // ✅ Attached Bearer Token
+                    "Authorization": `Bearer ${actualToken}`
                 }
             });
 
@@ -147,24 +181,37 @@ export default function ManageTaskPage() {
         }
     };
 
-    const handleDeleteTask = async (taskId) => {
+    // Open Modal Callback Anchor
+    const triggerDeleteModal = (task) => {
+        setModalConfig({ isOpen: true, activeTask: task });
+    };
+
+    const closeDeleteModal = () => {
+        setModalConfig({ isOpen: false, activeTask: null });
+    };
+
+    const handleExecuteDelete = async () => {
+        const taskId = modalConfig.activeTask?._id;
+        if (!taskId) return;
+
         try {
+            setIsDeleting(true);
             console.log(`==> [FRONTEND DELETE] Triggered termination pipeline for ID: ${taskId}`);
             
-            // ✅ Retrieve Token Data securely for termination operation
             const tokenData = await authClient.token();
             const actualToken = tokenData?.token || tokenData?.data?.token || tokenData?.token?.token;
 
             if (!actualToken) {
                 toast.error("Session verification failed. Authentication missing.");
+                setIsDeleting(false);
                 return;
             }
 
-            const res = await fetch(`http://localhost:8080/api/admin/tasks/${taskId}`, { 
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/tasks/${taskId}`, { 
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${actualToken}` // ✅ Attached Bearer Token
+                    "Authorization": `Bearer ${actualToken}`
                 }
             });
             const result = await res.json();
@@ -172,12 +219,15 @@ export default function ManageTaskPage() {
             if (res.ok && result.success) {
                 toast.success(result.message || "Task item dropped cleanly.");
                 setTasks(prev => prev.filter(task => task._id !== taskId));
+                closeDeleteModal();
             } else {
                 toast.error(result.message || "Failed to alter task safety matrix.");
-            }
+              }
         } catch (err) {
             console.error("❌ ==> [FRONTEND DELETE FAULT]:", err);
             toast.error("Internal connection exception during content removal.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -201,6 +251,15 @@ export default function ManageTaskPage() {
 
     return (
         <div className="p-6 md:p-10 bg-zinc-950 min-h-screen text-zinc-100 flex flex-col gap-6 max-w-7xl mx-auto">
+            {/* Inject Modal Interface */}
+            <DeleteConfirmationModal 
+                isOpen={modalConfig.isOpen}
+                onClose={closeDeleteModal}
+                onConfirm={handleExecuteDelete}
+                taskTitle={modalConfig.activeTask?.title || ""}
+                isDeleting={isDeleting}
+            />
+
             {/* Title Block */}
             <div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
@@ -269,7 +328,6 @@ export default function ManageTaskPage() {
                 {/* Filter 3: Budget Tiers & Custom Range inputs unified */}
                 <TopFilterSection title="Budget Range">
                     <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-                        {/* Presets */}
                         <div className="flex items-center gap-3.5">
                             <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 select-none transition-colors">
                                 <input 
@@ -303,7 +361,6 @@ export default function ManageTaskPage() {
                             </label>
                         </div>
                         
-                        {/* Custom Bound Blocks Inline */}
                         <div className="flex gap-1.5 items-center pl-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-white/5 pt-2 sm:pt-0">
                             <span className="text-zinc-500 text-[11px] font-medium mr-1">Custom:</span>
                             <input 
@@ -359,7 +416,7 @@ export default function ManageTaskPage() {
                                 <TaskTableRow 
                                     key={task._id} 
                                     task={task} 
-                                    onDelete={handleDeleteTask} 
+                                    onDeleteRequest={triggerDeleteModal} 
                                 />
                             ))}
                         </tbody>

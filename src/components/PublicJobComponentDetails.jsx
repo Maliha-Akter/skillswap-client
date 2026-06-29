@@ -8,6 +8,7 @@ import {
     FaFileAlt, FaTag, FaBriefcase, FaCircle, FaTimes
 } from 'react-icons/fa';
 import { useSession } from '@/lib/auth-client';
+import { toast } from 'react-toastify';
 
 const PublicJobComponentDetails = ({ params }) => {
     const router = useRouter();
@@ -73,7 +74,7 @@ const PublicJobComponentDetails = ({ params }) => {
 
                 // 1. Fetch Task Details (Public endpoint)
                 // Fixed: Added the missing comma right after the URL string template literal
-                const response = await fetch(`http://localhost:8080/tasks/${id}`, 
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, 
                     {
                     headers: {
                         // Safe check: Only passes bearer token if it actually exists
@@ -94,7 +95,7 @@ const PublicJobComponentDetails = ({ params }) => {
 
                 // 2. Fetch Proposals (Protected Endpoint)
                 if (activeUserEmail && !isClientOrAdmin) {
-                    const proposalsRes = await fetch(`http://localhost:8080/tasks/${id}/proposals`, {
+                    const proposalsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}/proposals`, {
                         headers: {
                             "Authorization": `Bearer ${token}`
                         }
@@ -135,7 +136,7 @@ const PublicJobComponentDetails = ({ params }) => {
             };
 
             const { data: tokenData } = await authClient.token();
-            const response = await fetch("http://localhost:8080/proposals", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/proposals`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -149,7 +150,7 @@ const PublicJobComponentDetails = ({ params }) => {
                 throw new Error(errData.message || "Failed to submit proposal.");
             }
 
-            alert("Proposal submitted successfully!");
+            toast.success("Proposal submitted successfully!");
 
             setProposalForm(prev => ({
                 ...prev,
@@ -162,7 +163,7 @@ const PublicJobComponentDetails = ({ params }) => {
             router.refresh();
 
         } catch (err) {
-            alert(`Error: ${err.message}`);
+            toast.error(`Error: ${err.message}`);
         } finally {
             setSubmittingProposal(false);
         }
@@ -172,7 +173,7 @@ const PublicJobComponentDetails = ({ params }) => {
         e.preventDefault();
         try {
             const { data: tokenData } = await authClient.token();
-            const response = await fetch(`http://localhost:8080/api/tasks/${id}/edit`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${id}/edit`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -187,13 +188,13 @@ const PublicJobComponentDetails = ({ params }) => {
             setTask(prev => ({ ...prev, ...editData }));
             setIsEditing(false);
         } catch (err) {
-            alert(`Update Error: ${err.message}`);
+            toast.error(`Update Error: ${err.message}`);
         }
     };
 
     const handleDeleteTask = async () => {
         if (task.proposals && task.proposals > 0) {
-            alert("Cannot delete: This task already has active proposals.");
+            toast.error("Cannot delete: This task already has active proposals.");
             return;
         }
 
@@ -202,7 +203,7 @@ const PublicJobComponentDetails = ({ params }) => {
 
         try {
             const { data: tokenData } = await authClient.token();
-            const response = await fetch(`http://localhost:8080/tasks/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${tokenData?.token}`
@@ -213,7 +214,7 @@ const PublicJobComponentDetails = ({ params }) => {
 
             router.push('/jobs');
         } catch (err) {
-            alert(`Delete Error: ${err.message}`);
+            toast.error(`Delete Error: ${err.message}`);
         }
     };
 

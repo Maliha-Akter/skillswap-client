@@ -35,7 +35,7 @@ const ActiveProjects = () => {
             console.log("⚡ FRONTEND: Initiating fetch for active projects with email:", email);
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
-            const url = `http://localhost:8080/freelancer-active-projects?email=${encodeURIComponent(email)}`;
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/freelancer-active-projects?email=${encodeURIComponent(email)}`;
 
             const res = await fetch(url
                 , {
@@ -88,7 +88,7 @@ const ActiveProjects = () => {
                 }
 
                 console.log(`📡 FRONTEND: Fetching deep metadata for Task ID: ${selectedTaskId}`);
-                const res = await fetch(`http://localhost:8080/task-details/${selectedTaskId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task-details/${selectedTaskId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -132,7 +132,7 @@ const ActiveProjects = () => {
             const { data: tokenData } = await authClient.token();
             const token = tokenData?.token;
 
-            const response = await fetch(`http://localhost:8080/tasks/${activeProject.taskId}/submit-deliverable`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${activeProject.taskId}/submit-deliverable`, {
                 method: 'PATCH',
                 headers: { 
                     'Content-Type': 'application/json',

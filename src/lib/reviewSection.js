@@ -11,7 +11,7 @@ app.get("/api/top-freelancers", async (req, res) => {
     console.log("\n🚀 [BACKEND DIAGNOSTIC] Incoming request to compile Top Rated Freelancers...");
     try {
         // 1. Fetch Freelancer list records
-        const freelancersResponse = await fetch("http://localhost:8080/freelancers");
+        const freelancersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/freelancers`);
         if (!freelancersResponse.ok) {
             console.error("❌ [BACKEND DIAGNOSTIC] Failed fetching basic user node list.");
             return res.status(500).json({ error: "Failed to collect core freelancer profiles registry." });
@@ -27,7 +27,7 @@ app.get("/api/top-freelancers", async (req, res) => {
                 
                 try {
                     // Pull direct reviews for this email node link
-                    const reviewResponse = await fetch(`http://localhost:8080/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
+                    const reviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/freelancer-reviews?email=${encodeURIComponent(freelancer.email)}`);
                     if (reviewResponse.ok) {
                         matchingReviews = await reviewResponse.json();
                     }

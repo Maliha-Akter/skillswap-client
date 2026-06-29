@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { authClient } from "@/lib/auth-client";
 
 const floatUp = {
   hidden: { opacity: 0, y: 30 },
@@ -43,18 +44,36 @@ const Banner = () => {
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const { data: session } = authClient.useSession();
+  const currentUser = session?.user;
+
+  let postTaskHref = "/login"; // Default if not authenticated
+  if (currentUser?.role === "admin") {
+    postTaskHref = "/dashboard/admin";
+  } else if (currentUser?.role === "client") {
+    postTaskHref = "/dashboard/client/post-task"; // Keeps your specific sub-route
+  } else if (currentUser?.role === "freelancer") {
+    postTaskHref = "/dashboard/freelancer";
+  }
+
+  // FIX: Track if the component has mounted to prevent SSR hydration mismatch
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const currentFullText = phrases[currentPhraseIndex];
-    
+
     // Typing speeds
     const typeSpeed = isDeleting ? 40 : 80;
-    
+
     const handleType = () => {
       if (!isDeleting) {
         // Adding a letter
         setDisplayedText(currentFullText.substring(0, displayedText.length + 1));
-        
+
         // If word complete, it pauses before deleting
         if (displayedText === currentFullText) {
           setTimeout(() => setIsDeleting(true), 1800);
@@ -62,7 +81,7 @@ const Banner = () => {
       } else {
         // Remove a letter
         setDisplayedText(currentFullText.substring(0, displayedText.length - 1));
-        
+
         // If fully deleted, shift to the next word
         if (displayedText === "") {
           setIsDeleting(false);
@@ -76,7 +95,7 @@ const Banner = () => {
   }, [displayedText, isDeleting, currentPhraseIndex]);
 
   return (
-    <motion.section 
+    <motion.section
       /* --- CONTINUOUS SMOOTH GRADIENT BACKGROUND ANIMATION (LEFT TO RIGHT) --- */
       animate={{
         backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
@@ -92,11 +111,11 @@ const Banner = () => {
       }}
       className="relative overflow-hidden text-white min-h-[90vh] flex items-center"
     >
-      
+
       {/* 1. DYNAMIC BACKGROUND MESH & GLOW EFFECTS */}
       <div className="pointer-events-none absolute inset-0 z-0">
         {/* Animated Moving Gradient Blob 1 */}
-        <motion.div 
+        <motion.div
           animate={{
             x: [0, 40, -20, 0],
             y: [0, -30, 20, 0],
@@ -107,11 +126,11 @@ const Banner = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute -left-24 top-10 h-96 w-96 rounded-full bg-teal-500/10 blur-[100px]" 
+          className="absolute -left-24 top-10 h-96 w-96 rounded-full bg-teal-500/10 blur-[100px]"
         />
-        
+
         {/* Animated Moving Gradient Blob 2 */}
-        <motion.div 
+        <motion.div
           animate={{
             x: [0, -50, 30, 0],
             y: [0, 40, -30, 0],
@@ -122,11 +141,11 @@ const Banner = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-yellow-500/10 blur-[120px]" 
+          className="absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-yellow-500/10 blur-[120px]"
         />
 
         {/* Linear/Radial Hue-Shifting Overlay Backing */}
-        <motion.div 
+        <motion.div
           animate={{
             backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"]
           }}
@@ -136,14 +155,15 @@ const Banner = () => {
             ease: "linear"
           }}
           style={{ backgroundSize: "200% 200%" }}
-          className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.15),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(250,204,21,0.12),transparent_40%)]" 
+          className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.15),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(250,204,21,0.12),transparent_40%)]"
         />
 
         {/* Tech Blueprint Faint Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:44px_44px] opacity-40" />
-        
+
         {/* Ambient Floating Dust Particles */}
-        {[...Array(4)].map((_, i) => (
+        {/* FIX: Only render Math.random() variables once we are safely running on the client browser */}
+        {hasMounted && [...Array(4)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ y: "100vh", x: Math.random() * 100 + "%", opacity: 0 }}
@@ -160,7 +180,7 @@ const Banner = () => {
       </div>
 
       <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:px-10 lg:grid-cols-2 lg:py-24 w-full">
-        
+
         {/* LEFT CONTENT */}
         <motion.div
           variants={floatUp}
@@ -214,14 +234,14 @@ const Banner = () => {
             className="mt-8 flex flex-col gap-4 sm:flex-row"
           >
             <Link
-              href="/dashboard/client/post-task"
+              href={postTaskHref}
               className="inline-flex items-center justify-center rounded-2xl bg-teal-500 px-6 py-3.5 text-sm font-semibold text-black shadow-lg shadow-teal-500/25 transition-all duration-300 hover:scale-[1.04] hover:bg-teal-400 hover:shadow-teal-400/40"
             >
               Post a Task
             </Link>
 
             <Link
-              href="/tasks"
+              href="/jobs"
               className="inline-flex items-center justify-center rounded-2xl border border-yellow-400/30 bg-white/5 px-6 py-3.5 text-sm font-semibold text-yellow-200 backdrop-blur-md transition-all duration-300 hover:scale-[1.04] hover:border-yellow-400/80 hover:bg-yellow-400/10 hover:text-yellow-100"
             >
               Browse Tasks
@@ -265,13 +285,13 @@ const Banner = () => {
           {/* MAIN PREVIEW PANEL: Infinite Floating Wave Motion Loop */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1, 
+            animate={{
+              opacity: 1,
+              scale: 1,
               y: [0, -14, 0],
               rotate: [0, 0.5, -0.5, 0]
             }}
-            transition={{ 
+            transition={{
               opacity: { delay: 0.3, duration: 0.8 },
               scale: { delay: 0.3, duration: 0.8 },
               y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
@@ -333,13 +353,13 @@ const Banner = () => {
           {/* PARALLAX COUNTER FLOATING PROFILE CARD (Drifts out-of-sync with main box) */}
           <motion.div
             initial={{ opacity: 0, y: 18, rotate: -2 }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               rotate: -2,
               y: [0, 12, 0],
               x: [0, -4, 0]
             }}
-            transition={{ 
+            transition={{
               opacity: { delay: 0.7, duration: 0.6 },
               y: { repeat: Infinity, duration: 5.2, ease: "easeInOut" },
               x: { repeat: Infinity, duration: 7, ease: "easeInOut" }

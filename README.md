@@ -3,7 +3,7 @@
 SkillSwap is a responsive, full-stack freelance marketplace where clients can post small, bite-sized contracts (e.g., logo design, copy editing, or quick bug fixes) and freelancers can submit proposals to get hired. Built as a high-performance modern alternative to platforms like Fiverr or Freelancer.com, it streamlines secure workflows from posting to payment.
 
 ## 🔗 Project Links
-- **Live Deployment Platform**: [SkillSwap Live](https://taskhive-eight-phi.vercel.app/)
+- **Live Deployment Platform**: [SkillSwap Live]()
 - **Frontend Repository**: [GitHub Client](https://github.com/username/skillswap-client)
 - **Backend Repository**: [GitHub Server](https://github.com/username/skillswap-server)
 
