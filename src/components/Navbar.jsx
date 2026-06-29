@@ -8,10 +8,11 @@ import { authClient } from "@/lib/auth-client";
 import { NavbarLogo } from "./NavbarLogo";
 
 export default function Navbar() {
-  const pathname = usePathname(); //current URL's pathname.
+  const pathname = usePathname(); 
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // 🔥 Added loading spinner state
 
   // Refs for click-outside detection
   const dropdownRef = useRef(null);
@@ -46,6 +47,7 @@ export default function Navbar() {
       : user?.role === "client"
         ? "/dashboard/client"
         : "/dashboard/freelancer";
+        
   const privateLinks = [
     { label: "Dashboard", href: dashboardHref },
     { label: "Profile", href: "/profile" },
@@ -53,12 +55,25 @@ export default function Navbar() {
 
   const linksToShow = user ? [...publicLinks, ...privateLinks] : publicLinks;
 
+  // 🚪 Clean Logout Flow with instant state refresh
   const handleSignOut = async () => {
-    await authClient.signOut();
+    setIsLoggingOut(true); // 1. Instantly trigger the loading state spinner wrapper
     setIsProfileDropdownOpen(false);
     setIsMenuOpen(false);
-    router.push("/");
-    router.refresh();
+
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            // 2. Instantly refresh and route back to landing page by wiping token cache contexts cleanly
+            window.location.href = "/";
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Sign out encountered a processing error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -104,8 +119,11 @@ export default function Navbar() {
 
         {/* RIGHT SECTION: Profile/Auth */}
         <div className="z-20 flex items-center" ref={dropdownRef}>
-          {isPending ? (
-            <div className="h-9 w-9 animate-pulse rounded-full bg-zinc-800" />
+          {/* 🔄 Condition extended to check for active logout processing */}
+          {isPending || isLoggingOut ? (
+            <div className="flex items-center justify-center h-10 w-10">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent"></span>
+            </div>
           ) : user ? (
             <div className="relative">
               <button

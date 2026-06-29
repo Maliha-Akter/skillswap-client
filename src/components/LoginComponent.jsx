@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { Card, Button, Link, TextField, Label, InputGroup, Input } from "@heroui/react";
 import { Eye, EyeSlash, At, ShieldKeyhole } from "@gravity-ui/icons";
@@ -41,6 +40,7 @@ export default function LoginComponent() {
                 toast.success("Welcome back!");
                 router.push(callbackUrl);
                 router.refresh();
+                
             }
         } catch (err) {
             toast.error("An unexpected error occurred.");

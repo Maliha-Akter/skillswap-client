@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { FaSlidersH } from 'react-icons/fa';
 
 const FilterSection = ({ title, children }) => (
   <div className="mb-6 border-b border-white/5 pb-5 last:border-none last:pb-0">
@@ -32,10 +33,12 @@ const JobFilterSidebar = ({
   };
 
   return (
-    <aside className="w-64 p-6 bg-zinc-950/80 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0 overflow-y-auto hidden md:block">
+    <aside className="w-64 p-6 bg-zinc-950/80 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0 overflow-y-auto hidden lg:block">
       
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-bold text-white tracking-tight">Filters</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <FaSlidersH className="text-teal-500 text-sm" /> Filters
+        </h2>
         <button 
           onClick={handleReset}
           className="text-red-400 text-xs hover:underline bg-transparent border-none cursor-pointer"
@@ -65,12 +68,12 @@ const JobFilterSidebar = ({
           <label key={status} className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
             <input 
               type="radio" 
-              name="status-filter"
+              name="status-filter-desktop"
               checked={selectedStatus.toLowerCase() === status.toLowerCase()}
               onChange={() => setSelectedStatus(status)}
               className="accent-teal-500 w-3.5 h-3.5" 
             />
-            {status}
+            {status === 'in_progress' ? 'In Progress' : status}
           </label>
         ))}
       </FilterSection>
@@ -81,7 +84,7 @@ const JobFilterSidebar = ({
           <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
             <input 
               type="radio" 
-              name="budget-preset"
+              name="budget-preset-desktop"
               checked={budgetRange.min === "0" && budgetRange.max === "100"}
               onChange={() => setBudgetRange({ min: "0", max: "100" })}
               className="accent-teal-500 w-3.5 h-3.5"
@@ -91,7 +94,7 @@ const JobFilterSidebar = ({
           <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
             <input 
               type="radio" 
-              name="budget-preset"
+              name="budget-preset-desktop"
               checked={budgetRange.min === "100" && budgetRange.max === "500"}
               onChange={() => setBudgetRange({ min: "100", max: "500" })}
               className="accent-teal-500 w-3.5 h-3.5"
@@ -101,7 +104,7 @@ const JobFilterSidebar = ({
           <label className="flex items-center gap-2 text-zinc-400 text-xs cursor-pointer hover:text-teal-400 transition-colors">
             <input 
               type="radio" 
-              name="budget-preset"
+              name="budget-preset-desktop"
               checked={budgetRange.min === "500" && budgetRange.max === "1000"}
               onChange={() => setBudgetRange({ min: "500", max: "1000" })}
               className="accent-teal-500 w-3.5 h-3.5"

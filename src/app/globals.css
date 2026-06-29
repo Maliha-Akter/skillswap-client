@@ -19,3 +19,77 @@
   background-size: 200% auto;
   animation: gradient-shift 1s ease infinite; /* Kept smooth but slightly crisper pacing */
 }
+/* Light mode defaults */
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+}
+
+/* Dark mode overrides */
+.dark {
+  --background: #000000;
+  --foreground: #fafafa;
+}
+
+/* Connect the variables to Tailwind elements natively */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+@keyframes marquee-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); } /* Shifts cleanly by one full set pattern */
+}
+
+.animate-marquee {
+  /* Starts drifting after a 2-second delay */
+  animation: marquee-drift 25s linear 2s infinite;
+}
+
+/* Pauses the drift tracking so user can interact with the 3D tilt mechanics cleanly */
+.group-container:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes border-beam {
+  0%, 100% { clip-path: inset(0 0 95% 0); }
+  25% { clip-path: inset(0 0 0 95%); }
+  50% { clip-path: inset(95% 0 0 0); }
+  75% { clip-path: inset(0 95% 0 0); }
+}
+
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+.animate-border-beam {
+  animation: border-beam 4s linear infinite;
+}
+@keyframes marquee-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@keyframes border-beam {
+  0%, 100% { clip-path: inset(0 0 95% 0); }
+  25% { clip-path: inset(0 0 0 95%); }
+  50% { clip-path: inset(95% 0 0 0); }
+  75% { clip-path: inset(0 95% 0 0); }
+}
+
+.animate-marquee {
+  animation: marquee-drift 25s linear 2s infinite;
+}
+
+.group-container:hover .animate-marquee {
+  animation-play-state: paused;
+}
+

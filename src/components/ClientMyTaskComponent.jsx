@@ -1,11 +1,9 @@
-// ClientMyTaskComponent.jsx
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaBriefcase, FaClock, FaDollarSign, FaCalendarAlt, FaSearch } from 'react-icons/fa';
+import { FaDollarSign, FaCalendarAlt, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { authClient } from "@/lib/auth-client";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // Reusable Top Filter Row Component
 const TopFilterSection = ({ title, children }) => (
@@ -72,7 +70,11 @@ const ClientMyTaskComponent = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // URL Routing Sync Hooks
+  const router = useRouter();
   const currentPath = usePathname();
+  const searchParams = useSearchParams();
 
   // Reading active session context
   const { data: session } = authClient.useSession();
@@ -85,20 +87,16 @@ const ClientMyTaskComponent = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [budgetRange, setBudgetRange] = useState({ min: "", max: "" });
 
-  // Reset All Filters Hook
-  const handleReset = () => {
-    setSearchQuery("");
-    setSelectedCategories([]);
-    setSelectedStatus("");
-    setBudgetRange({ min: "", max: "" });
-  };
+  // Pagination State Matrix
+  const urlPage = parseInt(searchParams.get("page"), 10) || 1;
+  const [currentPage, setCurrentPage] = useState(urlPage);
+  const [totalPages, setTotalPages] = useState(1);
+  const limitCount = 9;
 
-  // Category Checkbox Handlers
-  const handleCategoryChange = (category) => {
-    setSelectedCategories(prev =>
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
-    );
-  };
+  // Keep state matching URL parameter history changes
+  useEffect(() => {
+    setCurrentPage(urlPage);
+  }, [urlPage]);
 
   // 1. Debouncing Text Filter String input changes
   useEffect(() => {
@@ -108,11 +106,23 @@ const ClientMyTaskComponent = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
+  // Helper utility function to push updated URL params on state changes
+  const updatePageUrl = (pageNumber) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", pageNumber.toString());
+    router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+  };
+
+  // Reset page layout structure safely back to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    updatePageUrl(1);
+  }, [debouncedSearch, selectedCategories, selectedStatus, budgetRange.min, budgetRange.max]);
+
   // 2. Fetcher Effect Engine mapping matching query parameter logic
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        // Prevent loading screen flickering if typing a live search keyword
         if (!searchQuery) {
           setLoading(true);
         }
@@ -120,15 +130,16 @@ const ClientMyTaskComponent = () => {
 
         const params = new URLSearchParams();
         
-        // STAGE A: Enforce client isolation so they don't accidentally pull global task lists
         if (userEmail) params.append("email", userEmail);
-        
-        // STAGE B: Chain dashboard filter vectors smoothly
         if (debouncedSearch) params.append("search", debouncedSearch);
         if (selectedCategories.length > 0) params.append("category", selectedCategories.join(","));
         if (selectedStatus) params.append("status", selectedStatus.toLowerCase());
         if (budgetRange.min) params.append("minBudget", budgetRange.min);
         if (budgetRange.max) params.append("maxBudget", budgetRange.max);
+
+        // Append explicit pagination control parameters
+        params.append("page", currentPage.toString());
+        params.append("limit", limitCount.toString());
 
         const response = await fetch(`http://localhost:8080/tasks?${params.toString()}`);
         if (!response.ok) {
@@ -136,7 +147,10 @@ const ClientMyTaskComponent = () => {
         }
 
         const data = await response.json();
-        setTasks(data);
+        
+        // FIX: Extract tasks array safely out of paginated response envelope properties
+        setTasks(data.tasks || []);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
         console.error("Fetch tasks client side error:", err);
         setError(err.message);
@@ -145,11 +159,29 @@ const ClientMyTaskComponent = () => {
       }
     };
 
-    // Only fire if backend session user data structure resolves successfully
     if (userEmail) {
       fetchTasks();
     }
-  }, [userEmail, debouncedSearch, selectedCategories, selectedStatus, budgetRange.min, budgetRange.max]);
+  }, [userEmail, debouncedSearch, selectedCategories, selectedStatus, budgetRange.min, budgetRange.max, currentPage]);
+
+  const handlePageAction = (newPage) => {
+    setCurrentPage(newPage);
+    updatePageUrl(newPage);
+  };
+
+  const handleReset = () => {
+    setSearchQuery("");
+    setSelectedCategories([]);
+    setSelectedStatus("");
+    setBudgetRange({ min: "", max: "" });
+    handlePageAction(1);
+  };
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+    );
+  };
 
   return (
     <div className="p-6 md:p-10 bg-zinc-950 min-h-screen text-zinc-100 flex flex-col gap-6 max-w-7xl mx-auto">
@@ -161,7 +193,7 @@ const ClientMyTaskComponent = () => {
           <p className="text-sm text-zinc-400 mt-1">Manage all your posted tasks</p>
         </div>
         <Link href={'/dashboard/client/post-task'}>
-          <button className="bg-linear-to-br from-teal-400 to-yellow-400 text-zinc-950 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-amber-500/5 text-sm transition-all active:scale-98 cursor-pointer">
+          <button className="bg-gradient-to-br from-teal-400 to-yellow-400 text-zinc-950 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-amber-500/5 text-sm transition-all active:scale-98 cursor-pointer">
             <span className="text-base font-extrabold">+</span> Post New Task
           </button>
         </Link>
@@ -239,7 +271,7 @@ const ClientMyTaskComponent = () => {
                 onChange={() => setSelectedStatus(status)}
                 className="accent-teal-500" 
               />
-              {status}
+              {status === 'in_progress' ? 'In Progress' : status}
             </label>
           ))}
         </TopFilterSection>
@@ -263,11 +295,51 @@ const ClientMyTaskComponent = () => {
           No tasks found in your database tracking layout.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-2">
-          {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} currentPath={currentPath} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-2">
+            {tasks.map((task) => (
+              <TaskCard key={task._id} task={task} currentPath={currentPath} />
+            ))}
+          </div>
+
+          {/* Interactive Pagination Control Row */}
+          <div className="flex items-center justify-center gap-2 mt-8 pt-4 border-t border-white/5">
+            <button
+              onClick={() => handlePageAction(Math.max(currentPage - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-xl border border-white/10 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 disabled:hover:text-zinc-400 transition-all cursor-pointer disabled:cursor-not-allowed"
+              aria-label="Previous Page"
+            >
+              <FaChevronLeft className="text-xs" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageNumber = index + 1;
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => handlePageAction(pageNumber)}
+                  className={`w-9 h-9 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                    currentPage === pageNumber
+                      ? "bg-teal-500 border-teal-500 text-black font-bold"
+                      : "bg-zinc-900 border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => handlePageAction(Math.min(currentPage + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="p-2.5 rounded-xl border border-white/10 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-900 disabled:hover:text-zinc-400 transition-all cursor-pointer disabled:cursor-not-allowed"
+              aria-label="Next Page"
+            >
+              <FaChevronRight className="text-xs" />
+            </button>
+          </div>
+        </>
       )}
 
     </div>

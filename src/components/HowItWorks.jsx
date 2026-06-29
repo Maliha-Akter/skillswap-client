@@ -10,22 +10,25 @@ const HowItWorks = () => {
             id: 1,
             title: "Post a Task",
             description: "Clearly define your project requirements, timeline, and budget. It takes less than two minutes to get your task live in our marketplace.",
-            icon: <FaEdit className="text-xl md:text-2xl text-teal-400 animate-pulse" />,
-            badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20"
+            icon: <FaEdit className="text-4xl text-teal-400 animate-pulse" />,
+            badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+            topBg: "bg-teal-950/40 dark:bg-teal-950/30"
         },
         {
             id: 2,
             title: "Get Proposals",
             description: "Receive competitive proposals from vetted, top-rated freelancers within minutes. Compare profiles, star ratings, portfolios, and reviews side-by-side.",
-            icon: <FaFileInvoiceDollar className="text-xl md:text-2xl text-amber-400" />,
-            badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            icon: <FaFileInvoiceDollar className="text-4xl text-amber-400" />,
+            badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+            topBg: "bg-amber-950/40 dark:bg-amber-950/30"
         },
         {
             id: 3,
             title: "Hire and Pay",
             description: "Select the absolute best expert for your criteria, formalize the contract, and release payments safely only when milestones are completely hit.",
-            icon: <FaUserCheck className="text-xl md:text-2xl text-indigo-400" />,
-            badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+            icon: <FaUserCheck className="text-4xl text-indigo-400" />,
+            badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+            topBg: "bg-indigo-950/40 dark:bg-indigo-950/30"
         }
     ];
 
@@ -57,46 +60,54 @@ const HowItWorks = () => {
                             
                             {/* Visual Linking Vector Connectors (Hidden on Mobile) */}
                             {idx < 2 && (
-                                <div className="hidden md:block absolute top-12 left-[calc(100%-16px)] w-[calc(100%-32px)] h-[2px] bg-gradient-to-r from-zinc-800 to-transparent z-0 pointer-events-none" />
+                                <div className="hidden md:block absolute top-1/2 left-[calc(100%-16px)] w-[calc(100%-32px)] h-[2px] bg-gradient-to-r from-zinc-800 to-transparent z-0 pointer-events-none" />
                             )}
 
-                            <Card className="bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col justify-between h-full shadow-2xl relative overflow-hidden group-hover:border-teal-500/20 group-hover:scale-[1.01] transition-all duration-300 z-10">
+                            {/* Main Card Container with Precise Height Matching Layout Rule */}
+                            <Card className="bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl h-[24rem] shadow-2xl relative overflow-hidden transition-all duration-300 z-10 cursor-pointer">
                                 
-                                {/* Top Radial Card Highlight Accent */}
-                                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-zinc-700/50 to-transparent group-hover:via-teal-500/40 transition-all duration-500" />
-
-                                <div className="space-y-6">
-                                    {/* Icon & Badge Matrix Index Row */}
-                                    <div className="flex items-center justify-between">
-                                        <div className={`p-3.5 bg-zinc-950 border border-white/5 rounded-xl shadow-inner group-hover:scale-110 transition-transform duration-300`}>
-                                            {step.icon}
-                                        </div>
-                                        <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md border ${step.badgeColor}`}>
-                                            Step 0{step.id}
-                                        </span>
+                                {/* 1. TOP DIV (Icon Layer) - Absolute Center, Translates Upward on Hover */}
+                                <div className={`absolute inset-x-0 top-0 h-full flex flex-col items-center justify-center gap-4 transition-transform duration-500 ease-in-out z-20 transform group-hover:-translate-y-full rounded-2xl ${step.topBg}`}>
+                                    <div className="p-5 bg-zinc-950/80 border border-white/10 rounded-2xl shadow-xl">
+                                        {step.icon}
                                     </div>
+                                    <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${step.badgeColor}`}>
+                                        Step 0{step.id}
+                                    </span>
+                                    <h3 className="text-xl font-bold text-white tracking-tight">
+                                        {step.title}
+                                    </h3>
+                                </div>
 
-                                    {/* Text Content Block */}
-                                    <div className="space-y-2">
-                                        <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-teal-400 transition-colors">
-                                            {step.title}
-                                        </h3>
+                                {/* 2. BOTTOM DIV (Details Text Layer) - Translates in from Below Viewport on Hover */}
+                                <div className="absolute inset-0 h-full bg-zinc-900/95 p-6 md:p-8 flex flex-col justify-between transition-transform duration-500 ease-in-out z-10 transform translate-y-full group-hover:translate-y-0 rounded-2xl">
+                                    
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                                            <h3 className="text-lg font-bold text-white tracking-tight group-hover:text-teal-400 transition-colors">
+                                                {step.title}
+                                            </h3>
+                                            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${step.badgeColor}`}>
+                                                0{step.id}
+                                            </span>
+                                        </div>
                                         <p className="text-zinc-400 text-sm leading-relaxed">
                                             {step.description}
                                         </p>
                                     </div>
-                                </div>
 
-                                {/* Step Sub-indicator Anchor */}
-                                <div className="pt-6 mt-6 border-t border-white/5 flex items-center justify-between text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                                    <span className="text-[10px] uppercase font-bold tracking-wider font-mono">
-                                        {idx === 0 && "Initiate task"}
-                                        {idx === 1 && "Evaluate talent"}
-                                        {idx === 2 && "Secure milestone"}
-                                    </span>
-                                    <span className="text-xs font-bold font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-teal-400">
-                                        &rarr;
-                                    </span>
+                                    {/* Step Sub-indicator Anchor */}
+                                    <div className="pt-4 border-t border-white/5 flex items-center justify-between text-zinc-500">
+                                        <span className="text-[10px] uppercase font-bold tracking-wider font-mono">
+                                            {idx === 0 && "Initiate task"}
+                                            {idx === 1 && "Evaluate talent"}
+                                            {idx === 2 && "Secure milestone"}
+                                        </span>
+                                        <span className="text-xs font-bold font-mono text-teal-400">
+                                            &rarr;
+                                        </span>
+                                    </div>
+
                                 </div>
                             </Card>
                         </div>
