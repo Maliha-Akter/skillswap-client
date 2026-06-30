@@ -97,7 +97,7 @@ const MyProposalsPage = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
                     <div className="flex flex-col gap-1.5 min-w-0">
                         <button
-                            onClick={() => router.push('/tasks')}
+                            onClick={() => router.push('/jobs')}
                             className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 text-xs font-semibold uppercase tracking-wider transition-colors group mb-1 self-start"
                         >
                             <FaArrowLeft className="transform group-hover:-translate-x-0.5 transition-transform" /> Browse More Tasks
