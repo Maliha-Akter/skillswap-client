@@ -95,7 +95,7 @@ export default function LoginComponent() {
                             <TextField isRequired name="password" className="flex flex-col gap-1.5">
                                 <div className="flex justify-between items-center">
                                     <Label className="text-xs font-medium text-zinc-300">Password</Label>
-                                    <Link href="/auth/forgot-password" size="sm" className="text-[10px] text-teal-400 hover:underline">Forgot password?</Link>
+                                    <Link href="/auth/ForgotPassword" size="sm" className="text-[10px] text-teal-400 hover:underline">Forgot password?</Link>
                                 </div>
                                 <InputGroup className="flex items-center gap-2 border border-white/10 rounded-xl px-3 bg-white/5 focus-within:border-teal-500">
                                     <ShieldKeyhole className="text-zinc-500" size={16} />

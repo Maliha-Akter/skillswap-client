@@ -345,7 +345,7 @@ export default function SignupComponent() {
                             <TextField isRequired name="password" className="flex flex-col gap-1.5">
                                 <div className="flex justify-between items-center">
                                     <Label className="text-xs font-medium text-zinc-300">Password</Label>
-                                    <Link href="/auth/forgot-password" size="sm" className="text-[10px] text-teal-400 hover:underline">
+                                    <Link href="/auth/ForgotPassword" size="sm" className="text-[10px] text-teal-400 hover:underline">
                                         Forgot password?
                                     </Link>
                                 </div>
