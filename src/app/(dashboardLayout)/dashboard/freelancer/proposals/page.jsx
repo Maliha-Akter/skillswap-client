@@ -121,7 +121,7 @@ const MyProposalsPage = () => {
                     <div className="text-center py-16 md:py-20 bg-zinc-900/30 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4">
                         <p className="text-zinc-500 text-sm italic">You haven't submitted any proposals yet.</p>
                         <button
-                            onClick={() => router.push('/tasks')}
+                            onClick={() => router.push('/jobs')}
                             className="text-xs bg-teal-500 text-black font-bold px-4 py-2 rounded-xl hover:bg-teal-400 transition-colors"
                         >
                             Find Work

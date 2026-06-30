@@ -160,7 +160,7 @@ const ProposalDetails = ({ params: paramsPromise }) => {
                     {/* Global Actions Block */}
                     <div className="flex justify-end gap-3 border-t border-white/5 pt-6 mt-2">
                         <button 
-                            onClick={() => router.push(`/tasks/${proposal.task_id}`)}
+                            onClick={() => router.push(`/jobs/${proposal.task_id}`)}
                             className="px-4 py-2 text-xs font-bold bg-zinc-800 text-zinc-200 border border-white/5 rounded-xl hover:bg-zinc-700 transition-colors"
                         >
                             View Original Workspace Job
