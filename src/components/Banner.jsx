@@ -47,7 +47,7 @@ const Banner = () => {
   const { data: session } = authClient.useSession();
   const currentUser = session?.user;
 
-  let postTaskHref = "/login"; // Default if not authenticated
+  let postTaskHref = "/auth/signin"; // Default if not authenticated
   if (currentUser?.role === "admin") {
     postTaskHref = "/dashboard/admin";
   } else if (currentUser?.role === "client") {
