@@ -11,33 +11,42 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 - ⚙️ **Backend Repository**: [GitHub Server](https://github.com/<insert-your-server-repo-path>)
 
 ---
-## 📸 Platform Interface Showcase
+## 📸 Project Screenshots
 
-### Homepage Dashboard
+### 1. Homepage
 <p align="center">
-  <img src="./public/skillswap-home.jpg" alt="SkillSwap Homepage Landing View" width="900">
+  <img src="./public/skillswap-home.png" alt="SkillSwap Homepage" width="900">
 </p>
 
-### Transparent Workflow Architecture
+### 2. Pinned Task
 <p align="center">
-  <img src="./public/skillswap-how-works.png" alt="How It Works Section" width="900">
+  <img src="./public/skillswap-pinnedTask.png" alt="Pinned Tasks Section" width="900">
 </p>
 
-### Advanced Filter & Task Discovery Matrix
+### 3. Pinned Freelancer
 <p align="center">
-  <img src="./public/skillswap-task.png" alt="Task Exploration Matrix Interface" width="900">
+  <img src="./public/skillswap-PinnedFreelancer.png.png" alt="Pinned Freelancers Section" width="900">
 </p>
 
-### Browse Vetted Talent Ecosystem
+### 4. How It Works
 <p align="center">
-  <img src="./public/skillswap-freelancer-browse.png" alt="Browse Talent Workspace" width="900">
+  <img src="./public/skillswap-how-works.png" alt="How the platform works" width="900">
 </p>
 
-### Network Verification Statistics
+### 5. Platform Statistics
 <p align="center">
-  <img src="./public/skillswap-Platform.png" alt="Platform Statistics Overview" width="900">
+  <img src="./public/skillswap-Platform.png" alt="Platform Statistics" width="900">
 </p>
 
+### 6. Search Tasks Page
+<p align="center">
+  <img src="./public/skillswap-task.png" alt="Search and filter tasks" width="900">
+</p>
+
+### 7. Browse Freelancers Page
+<p align="center">
+  <img src="./public/skillswap-freelancer-browse.png" alt="Browse freelancers list" width="900">
+</p>
 ---
 
 ## 🛠️ Technologies Used
