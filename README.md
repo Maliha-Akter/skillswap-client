@@ -124,7 +124,7 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 
 Follow these step-by-step instructions to get a local copy of SkillSwap up and running.
 
-### 1. Clone the Repositories
+### Clone the Repositories
 ```bash
 # Clone frontend client
 git clone https://github.com/Maliha-Akter/skillswap-server.git
