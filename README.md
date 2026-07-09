@@ -12,10 +12,31 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 
 ---
 
-## 📸 Screenshot
+## 📸 Platform Interface Showcase
 
+### Homepage Dashboard
 <p align="center">
-  <img src="./screenshots/home.png" alt="SkillSwap Homepage Mockup" width="900">
+  <img src="./skillswap-home.jpg" alt="SkillSwap Homepage Landing View" width="900">
+</p>
+
+### Transparent Workflow Architecture
+<p align="center">
+  <img src="./skillswap-how-works.png" alt="How It Works Section" width="900">
+</p>
+
+### Advanced Filter & Task Discovery Matrix
+<p align="center">
+  <img src="./skillswap-task.png" alt="Task Exploration Matrix Interface" width="900">
+</p>
+
+### Browse Vetted Talent Ecosystem
+<p align="center">
+  <img src="./skillswap-freelancer-browse.png" alt="Browse Talent Workspace" width="900">
+</p>
+
+### Network Verification Statistics
+<p align="center">
+  <img src="./skillswap-Platform.png" alt="Platform Statistics Overview" width="900">
 </p>
 
 ---
