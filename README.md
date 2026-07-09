@@ -7,8 +7,8 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 ## 🔗 Live Links
 
 - 🌐 **Live Platform**: [SkillSwap Live](https://skillswap-client-three.vercel.app/)
-- 💻 **Frontend Repository**: [GitHub Client](https://github.com/<insert-your-client-repo-path>)
-- ⚙️ **Backend Repository**: [GitHub Server](https://github.com/<insert-your-server-repo-path>)
+- 💻 **Frontend Repository**: [GitHub Client](https://github.com/Maliha-Akter/skillswap-client)
+- ⚙️ **Backend Repository**: [GitHub Server](https://github.com/Maliha-Akter/skillswap-server)
 
 ---
 ## 📸 Project Screenshots
@@ -127,7 +127,7 @@ Follow these step-by-step instructions to get a local copy of SkillSwap up and r
 ### 1. Clone the Repositories
 ```bash
 # Clone frontend client
-git clone [https://github.com/](https://github.com/)<insert-your-client-repo-path>.git client
+git clone https://github.com/Maliha-Akter/skillswap-server.git
 
 # Clone backend server
-git clone [https://github.com/](https://github.com/)<insert-your-server-repo-path>.git server
+git clone https://github.com/Maliha-Akter/skillswap-server.git
