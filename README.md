@@ -6,37 +6,36 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 
 ## 🔗 Live Links
 
-- 🌐 **Live Platform**: [SkillSwap Live](https://<insert-your-live-deployment-url>)
+- 🌐 **Live Platform**: [SkillSwap Live](https://skillswap-client-three.vercel.app/)
 - 💻 **Frontend Repository**: [GitHub Client](https://github.com/<insert-your-client-repo-path>)
 - ⚙️ **Backend Repository**: [GitHub Server](https://github.com/<insert-your-server-repo-path>)
 
 ---
-
 ## 📸 Platform Interface Showcase
 
 ### Homepage Dashboard
 <p align="center">
-  <img src="./skillswap-home.jpg" alt="SkillSwap Homepage Landing View" width="900">
+  <img src="./public/skillswap-home.jpg" alt="SkillSwap Homepage Landing View" width="900">
 </p>
 
 ### Transparent Workflow Architecture
 <p align="center">
-  <img src="./skillswap-how-works.png" alt="How It Works Section" width="900">
+  <img src="./public/skillswap-how-works.png" alt="How It Works Section" width="900">
 </p>
 
 ### Advanced Filter & Task Discovery Matrix
 <p align="center">
-  <img src="./skillswap-task.png" alt="Task Exploration Matrix Interface" width="900">
+  <img src="./public/skillswap-task.png" alt="Task Exploration Matrix Interface" width="900">
 </p>
 
 ### Browse Vetted Talent Ecosystem
 <p align="center">
-  <img src="./skillswap-freelancer-browse.png" alt="Browse Talent Workspace" width="900">
+  <img src="./public/skillswap-freelancer-browse.png" alt="Browse Talent Workspace" width="900">
 </p>
 
 ### Network Verification Statistics
 <p align="center">
-  <img src="./skillswap-Platform.png" alt="Platform Statistics Overview" width="900">
+  <img src="./public/skillswap-Platform.png" alt="Platform Statistics Overview" width="900">
 </p>
 
 ---
