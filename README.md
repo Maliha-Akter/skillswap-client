@@ -2,10 +2,49 @@
 
 SkillSwap is a responsive, full-stack freelance marketplace where clients can post small, bite-sized contracts (e.g., logo design, copy editing, or quick bug fixes) and freelancers can submit proposals to get hired. Built as a high-performance modern alternative to platforms like Fiverr or Freelancer.com, it streamlines secure workflows from posting to payment.
 
-## 🔗 Project Links
-- **Live Deployment Platform**: [SkillSwap Live](https://skillswap-client-three.vercel.app/)
-- **Frontend Repository**: [GitHub Client](https://github.com/Maliha-Akter/skillswap-client)
-- **Backend Repository**: [GitHub Server](https://github.com/Maliha-Akter/skillswap-server)
+---
+
+## 🔗 Live Links
+
+- 🌐 **Live Platform**: [SkillSwap Live](https://<insert-your-live-deployment-url>)
+- 💻 **Frontend Repository**: [GitHub Client](https://github.com/<insert-your-client-repo-path>)
+- ⚙️ **Backend Repository**: [GitHub Server](https://github.com/<insert-your-server-repo-path>)
+
+---
+
+## 📸 Screenshot
+
+<p align="center">
+  <img src="./screenshots/home.png" alt="SkillSwap Homepage Mockup" width="900">
+</p>
+
+---
+
+## 🛠️ Technologies Used
+
+### Frontend
+- **Next.js** (v14/15) — Framework for React Server Components & optimized page routing.
+- **React.js** — Core application library UI layer.
+- **Tailwind CSS** — Utility-first responsive styling framework.
+- **HeroUI** (@heroui/react) — Premium visual design library with glassmorphic elements.
+- **Framer Motion** — Core animation engine for fluid UI/UX state transitions.
+
+### Backend & Database
+- **Node.js** — JavaScript runtime environment.
+- **Express.js** — Minimalist backend framework managing API routing.
+- **MongoDB** — NoSQL cloud database platform.
+- **Mongoose** — Object Data Modeling (ODM) layer for database interactions.
+
+### Authentication & Security
+- **BetterAuth & Google OAuth** — Federated secure credential management.
+- **Asymmetric JWT (jose)** — Verification gateway via remote JWKS endpoint distribution sets.
+
+### Payment System
+- **Stripe** — Secure credit card transaction pipeline and billing histories.
+
+### Deployment
+- **Vercel** — Production environment for the frontend.
+- **Render** — Cloud hosting infrastructure for the backend server.
 
 ---
 
@@ -17,30 +56,49 @@ SkillSwap is a responsive, full-stack freelance marketplace where clients can po
 - **Admin Control System (`/dashboard/admin`)**: Hardcoded master system to monitor all platform accounts, toggle account block statuses dynamically, track live task safety constraints, and review absolute Stripe payment history tracking lists.
 
 ### 🛡️ Enterprise Security & Validation Architecture
-- **BetterAuth Integration**: Credential email-and-password sign-up maps alongside Google OAuth integration setups smoothly.
+- **OAuth Framework Integration**: Credential email-and-password sign-up maps alongside Google OAuth integration setups smoothly.
 - **Asymmetric JWT Verification**: Secure authentication gateway utilizing a remote JWKS dataset endpoint to block malicious network traffic vectors on private backend endpoints.
 - **Persistent Middleware Protection**: Advanced route matching patterns under `/dashboard/*` to automatically isolate unauthenticated or unauthorized accounts.
 
 ### 🔍 Advanced UX Engineering
-- **Server-Driven Query Offsets**: Real-time server-side pagination limiting defaults to **9 items per query execution limit** with complete URL state tracking symmetry (`?page=1`).
+- **Server-Driven Query Offsets**: Real-time server-side pagination limiting defaults to 9 items per query execution limit with complete URL state tracking symmetry (`?page=1`).
 - **Compound State Matrix Filter**: Blended text debouncing title exploration that operates simultaneously with category criteria selection checkboxes and minimum/maximum budget restrictions.
 - **Adaptive Visual Architecture**: Premium custom dark mode layout designed with deep zinc components, clean typography gradients, and responsive navigation layouts for any screen size.
 
 ---
 
-## 📦 Core NPM Packages Installed
+## 📦 Dependencies
 
-### 💻 Frontend (Client Application)
-* **`next`** (v14/15) - Core Framework for React Server Components and optimized page structures.
-* **`react`** / **`react-dom`** - Application engine.
-* **`@heroui/react`** - Premium UI library providing accessible, pre-styled glassmorphic elements, layouts, and input components.
-* **`framer-motion`** - Core engine behind HeroUI's smooth, fluid visual transitions and page-load animations.
-* **`lucide-react`** / **`react-icons`** - Custom visual styling sets (FontAwesome icons grid ecosystem).
-* **`tailmerge`** / **`clsx`** / **`tailwindcss`** - Modular design spacing, typography configurations, and responsive sidebars.
+### Client
+- `next`
+- `react`
+- `react-dom`
+- `tailwindcss`
+- `@heroui/react`
+- `framer-motion`
+- `lucide-react`
+- `react-icons`
+- `clsx`
+- `tailwind-merge`
 
-### ⚙️ Backend (Server Application)
-* **`express`** - Minimalist web framework engine routing incoming server connections.
-* **`mongodb`** / **`mongoose`** - Secure data access layers parsing client collection attributes.
-* **`jose`** - Lightweight JWT token verification layer resolving public key distribution sets via `createRemoteJWKSet`.
-* **`cors`** - Cross-Origin Resource Sharing handling mechanisms allowing secure API access permissions.
-* **`dotenv`** - Environmental storage configuration container parsing database connections.
+### Server
+- `express`
+- `mongoose`
+- `mongodb`
+- `jose`
+- `cors`
+- `dotenv`
+
+---
+
+## ⚙️ Run Locally
+
+Follow these step-by-step instructions to get a local copy of SkillSwap up and running.
+
+### 1. Clone the Repositories
+```bash
+# Clone frontend client
+git clone [https://github.com/](https://github.com/)<insert-your-client-repo-path>.git client
+
+# Clone backend server
+git clone [https://github.com/](https://github.com/)<insert-your-server-repo-path>.git server
